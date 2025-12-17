@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      # id-token: write  # No longer needed for token auth (can keep or remove)
+      id-token: write
 
     steps:
       - name: Checkout code
