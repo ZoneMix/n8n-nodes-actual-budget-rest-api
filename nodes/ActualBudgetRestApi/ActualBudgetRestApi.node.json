@@ -1,0 +1,18 @@
+{
+	"node": "n8n-nodes-actual-budget-rest-api",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Finance & Accounting", "Productivity"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://github.com/zonemix/actual-budget-rest-api#connecting-n8n"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://github.com/zonemix/actual-budget-rest-api"
+			}
+		]
+	}
+}
