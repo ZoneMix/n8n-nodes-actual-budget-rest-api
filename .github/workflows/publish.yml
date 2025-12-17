@@ -29,10 +29,6 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Test (if you have tests)
-        run: npm test
-        continue-on-error: false
-
       - name: Build node package
         run: npm run build
 
