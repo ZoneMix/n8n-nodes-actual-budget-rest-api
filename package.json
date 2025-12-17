@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-actual-budget-rest-api",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "n8n community node for the Actual Budget REST API wrapper (accounts, transactions, budgets, categories, payees)",
   "license": "MIT",
   "homepage": "https://github.com/zonemix/n8n-nodes-actual-budget-rest-api",
@@ -31,10 +31,10 @@
   },
   "devDependencies": {
     "@n8n/node-cli": "*",
-    "eslint": "9.32.0",
-    "prettier": "3.6.2",
+    "eslint": "9.39.2",
+    "prettier": "3.7.4",
     "release-it": "^19.0.4",
-    "typescript": "5.9.2"
+    "typescript": "5.9.3"
   },
   "peerDependencies": { "n8n-workflow": "*" }
 }
