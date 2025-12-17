@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
+      # id-token: write  # No longer needed for token auth (can keep or remove)
 
     steps:
       - name: Checkout code
@@ -21,16 +21,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.x'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm ci
 
       - name: Lint
-        run: npm run lint
+        run: n8n-node lint
+
+      - name: Test (if you have tests)
+        run: npm test
         continue-on-error: false
 
       - name: Build node package
         run: npm run build
 
       - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --provenance --ignore-scripts --access public
