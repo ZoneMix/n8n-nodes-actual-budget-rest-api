@@ -10,6 +10,9 @@
     "type": "git",
     "url": "https://github.com/zonemix/n8n-nodes-actual-budget-rest-api"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "n8n-node build",
     "build:watch": "tsc --watch",
