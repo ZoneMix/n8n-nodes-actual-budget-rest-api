@@ -34,7 +34,7 @@ npm link n8n-nodes-actual-budget-rest-api
 
 ## Operations
 
-This node supports the following resources and operations:
+This node supports the following resources and operations (36 operations total):
 
 ### Account
 - **Get Many** - Retrieve all accounts
@@ -80,7 +80,15 @@ This node supports the following resources and operations:
 - **Reset Hold** - Reset held amount
 
 ### Health
-- **Check** - Check API health status
+- **Check** - Check API health status (production shows limited info, development shows full details)
+
+### Metrics
+- **Get Full** - Get comprehensive metrics snapshot (all metrics)
+- **Get Summary** - Get lightweight summary metrics only
+- **Reset** - Reset all metrics counters to zero
+
+### Query
+- **Execute** - Execute ActualQL queries against Actual Budget data (secure, whitelisted tables only)
 
 ## Credentials
 
@@ -111,6 +119,19 @@ For production deployments, OAuth2 is also supported via the `actualBudgetRestAp
 - Minimum n8n version: **1.0.0**
 - Tested with n8n: **1.70+**
 - Compatible with Actual Budget REST API wrapper: **v1.0.0+**
+
+## Recent Updates
+
+### Error Handling
+The node now properly handles structured error responses from the API, including:
+- Error codes for programmatic handling
+- Request IDs for tracing
+- Additional error details (in development)
+
+### New Features
+- **Metrics Resource**: Monitor API performance and usage
+- **Query Resource**: Execute secure ActualQL queries with table whitelisting and validation
+- **Enhanced Health Checks**: Production-safe health endpoint with information disclosure prevention
 
 ## Configuration
 

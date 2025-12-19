@@ -15,6 +15,8 @@ import { categoryGroupOperations, categoryGroupFields } from './resources/Catego
 import { payeeOperations, payeeFields } from './resources/Payee';
 import { budgetOperations, budgetFields } from './resources/Budget';
 import { healthOperations, healthFields } from './resources/Health';
+import { metricsOperations, metricsFields } from './resources/Metrics';
+import { queryOperations, queryFields } from './resources/Query';
 
 export class ActualBudgetRestApi implements INodeType {
 	description: INodeTypeDescription = {
@@ -103,8 +105,16 @@ export class ActualBudgetRestApi implements INodeType {
 						value: 'health',
 					},
 					{
+						name: 'Metric',
+						value: 'metrics',
+					},
+					{
 						name: 'Payee',
 						value: 'payee',
+					},
+					{
+						name: 'Query',
+						value: 'query',
 					},
 					{
 						name: 'Transaction',
@@ -127,6 +137,10 @@ export class ActualBudgetRestApi implements INodeType {
 			...budgetFields,
 			...healthOperations,
 			...healthFields,
+			...metricsOperations,
+			...metricsFields,
+			...queryOperations,
+			...queryFields,
 		],
 	};
 
@@ -457,6 +471,83 @@ export class ActualBudgetRestApi implements INodeType {
 						endpoint = '/health';
 						break;
 					}
+					case 'metrics': {
+						switch (operation) {
+							case 'getFull': {
+								method = 'GET';
+								endpoint = '/metrics';
+								break;
+							}
+							case 'getSummary': {
+								method = 'GET';
+								endpoint = '/metrics/summary';
+								break;
+							}
+							case 'reset': {
+								method = 'POST';
+								endpoint = '/metrics/reset';
+								break;
+							}
+							default:
+								throw new NodeOperationError(
+									this.getNode(),
+									`Unsupported metrics operation: ${operation}`,
+								);
+						}
+						break;
+					}
+					case 'query': {
+						if (operation === 'execute') {
+							method = 'POST';
+							endpoint = '/query';
+							const table = this.getNodeParameter('table', i) as string;
+							const select = this.getNodeParameter('select', i) as string;
+							const filterParam = this.getNodeParameter('filter', i) as string;
+							const options = this.getNodeParameter('options', i, {}) as IDataObject;
+
+							const queryBody: IDataObject = {
+								table,
+							};
+
+							// Handle select field
+							if (select === 'custom') {
+								const customFields = this.getNodeParameter('customFields', i) as string;
+								queryBody.select = customFields
+									.split(',')
+									.map((f) => f.trim())
+									.filter(Boolean);
+							} else if (select === '*') {
+								queryBody.select = '*';
+							}
+
+							// Parse filter JSON
+							if (filterParam) {
+								try {
+									queryBody.filter = JSON.parse(filterParam);
+								} catch (error) {
+									throw new NodeOperationError(
+										this.getNode(),
+										`Invalid filter JSON: ${error instanceof Error ? error.message : String(error)}`,
+									);
+								}
+							}
+
+							// Add options if provided
+							if (options.limit) {
+								queryBody.options = {
+									limit: options.limit as number,
+								};
+							}
+
+							body.query = queryBody;
+						} else {
+							throw new NodeOperationError(
+								this.getNode(),
+								`Unsupported query operation: ${operation}`,
+							);
+						}
+						break;
+					}
 					default:
 						throw new NodeOperationError(this.getNode(), `Unsupported resource: ${resource}`);
 				}
@@ -485,14 +576,55 @@ export class ActualBudgetRestApi implements INodeType {
 					json: responseData,
 					pairedItem: { item: i },
 				});
-			} catch (error) {
+			} catch (error: unknown) {
 				if (this.continueOnFail()) {
+					// Handle structured error responses from API
+					const err = error as IDataObject & { message?: string; response?: { data?: IDataObject }; json?: IDataObject };
+					let errorData: IDataObject = { error: err.message || 'Unknown error' };
+					
+					// If error has response data (from API), use it
+					if (err.response?.data) {
+						const apiError = err.response.data;
+						errorData = {
+							error: apiError.error || err.message,
+							requestId: apiError.requestId,
+							code: apiError.code,
+							details: apiError.details,
+						};
+					} else if (err.json) {
+						// Handle n8n HTTP error format
+						errorData = {
+							error: err.json.error || err.message,
+							requestId: err.json.requestId,
+							code: err.json.code,
+							details: err.json.details,
+						};
+					}
+					
 					returnData.push({
-						json: { error: error.message },
+						json: errorData,
 						pairedItem: { item: i },
 					});
 					continue;
 				}
+				
+				// Enhance error with API error details if available
+				const err = error as IDataObject & { message?: string; response?: { data?: IDataObject } };
+				if (err.response?.data) {
+					const apiError = err.response.data;
+					const enhancedError = new NodeOperationError(
+						this.getNode(),
+						(apiError.error as string) || err.message || 'Unknown error',
+						{
+							description: apiError.code ? `Error code: ${apiError.code as string}` : undefined,
+						},
+					);
+					if (apiError.requestId) {
+						(enhancedError as unknown as IDataObject).requestId = apiError.requestId;
+					}
+					throw enhancedError;
+				}
+				
 				throw error;
 			}
 		}
