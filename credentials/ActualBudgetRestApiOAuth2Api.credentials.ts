@@ -15,7 +15,7 @@ export class ActualBudgetRestApiOAuth2Api implements ICredentialType {
 			displayName: 'Base URL',
 			name: 'baseUrl',
 			type: 'string',
-			default: 'http://localhost:3000',
+			default: 'http://actual-api-wrapper-dev:3000',
 			required: true,
 			placeholder: 'https://actual-api.example.com',
 			description:
@@ -31,14 +31,14 @@ export class ActualBudgetRestApiOAuth2Api implements ICredentialType {
 			displayName: 'Authorization URL',
 			name: 'authUrl',
 			type: 'string',
-			default: '={{$self.baseUrl}}/oauth/authorize',
+			default: 'http://localhost:3000/oauth/authorize',
 			description: 'The authorization endpoint of the Actual Budget API',
 		},
 		{
 			displayName: 'Access Token URL',
 			name: 'accessTokenUrl',
 			type: 'string',
-			default: '={{$self.baseUrl}}/oauth/token',
+			default: 'http://actual-api-wrapper-dev:3000/oauth/token',
 			description: 'The token endpoint of the Actual Budget API',
 		},
 		{
@@ -52,8 +52,8 @@ export class ActualBudgetRestApiOAuth2Api implements ICredentialType {
 			displayName: 'Scope',
 			name: 'scope',
 			type: 'string',
-			default: '',
-			description: 'Optional scopes (none are required for this API)',
+			default: 'api',
+			description: 'Scope to request from the Actual Budget API',
 		},
 		{
 			displayName: 'Authentication',

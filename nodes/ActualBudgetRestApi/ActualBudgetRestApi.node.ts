@@ -171,6 +171,29 @@ export class ActualBudgetRestApi implements INodeType {
 		} else {
 			const credentials = await this.getCredentials('actualBudgetRestApiOAuth2Api');
 			baseUrl = credentials.baseUrl as string;
+
+			// Fallback: extract baseUrl from authUrl or accessTokenUrl if baseUrl is not set
+			if (!baseUrl) {
+				const authUrl = credentials.authUrl as string;
+				const accessTokenUrl = credentials.accessTokenUrl as string;
+				const urlToParse = authUrl || accessTokenUrl;
+				if (urlToParse) {
+					try {
+						const url = new URL(urlToParse);
+						baseUrl = `${url.protocol}//${url.host}`;
+					} catch {
+						throw new NodeOperationError(
+							this.getNode(),
+							'Base URL is required. Please set it in the OAuth2 credentials or ensure authUrl/accessTokenUrl are valid URLs.',
+						);
+					}
+				} else {
+					throw new NodeOperationError(
+						this.getNode(),
+						'Base URL is required. Please set it in the OAuth2 credentials.',
+					);
+				}
+			}
 		}
 
 		// Process each input item
@@ -552,6 +575,12 @@ export class ActualBudgetRestApi implements INodeType {
 						throw new NodeOperationError(this.getNode(), `Unsupported resource: ${resource}`);
 				}
 
+				if (!baseUrl) {
+					throw new NodeOperationError(
+						this.getNode(),
+						'Base URL is not configured. Please check your credentials.',
+					);
+				}
 				const url = `${baseUrl.replace(/\/$/, '')}${endpoint}`;
 				const requestOptions: IHttpRequestOptions = {
 					method,
@@ -579,9 +608,13 @@ export class ActualBudgetRestApi implements INodeType {
 			} catch (error: unknown) {
 				if (this.continueOnFail()) {
 					// Handle structured error responses from API
-					const err = error as IDataObject & { message?: string; response?: { data?: IDataObject }; json?: IDataObject };
+					const err = error as IDataObject & {
+						message?: string;
+						response?: { data?: IDataObject };
+						json?: IDataObject;
+					};
 					let errorData: IDataObject = { error: err.message || 'Unknown error' };
-					
+
 					// If error has response data (from API), use it
 					if (err.response?.data) {
 						const apiError = err.response.data;
@@ -600,14 +633,14 @@ export class ActualBudgetRestApi implements INodeType {
 							details: err.json.details,
 						};
 					}
-					
+
 					returnData.push({
 						json: errorData,
 						pairedItem: { item: i },
 					});
 					continue;
 				}
-				
+
 				// Enhance error with API error details if available
 				const err = error as IDataObject & { message?: string; response?: { data?: IDataObject } };
 				if (err.response?.data) {
@@ -624,7 +657,7 @@ export class ActualBudgetRestApi implements INodeType {
 					}
 					throw enhancedError;
 				}
-				
+
 				throw error;
 			}
 		}
