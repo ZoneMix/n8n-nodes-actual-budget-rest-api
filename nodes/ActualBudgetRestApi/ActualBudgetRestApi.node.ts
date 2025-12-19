@@ -178,10 +178,11 @@ export class ActualBudgetRestApi implements INodeType {
 				const accessTokenUrl = credentials.accessTokenUrl as string;
 				const urlToParse = authUrl || accessTokenUrl;
 				if (urlToParse) {
-					try {
-						const url = new URL(urlToParse);
-						baseUrl = `${url.protocol}//${url.host}`;
-					} catch {
+					// Manual URL parsing (can't use Node.js url module in n8n community nodes)
+					const urlMatch = urlToParse.match(/^(https?:\/\/[^/]+)/);
+					if (urlMatch) {
+						baseUrl = urlMatch[1];
+					} else {
 						throw new NodeOperationError(
 							this.getNode(),
 							'Base URL is required. Please set it in the OAuth2 credentials or ensure authUrl/accessTokenUrl are valid URLs.',
