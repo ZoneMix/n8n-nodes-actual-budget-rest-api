@@ -1,12 +1,14 @@
 import {
 	NodeConnectionTypes,
 	NodeOperationError,
+	NodeApiError,
 	type IHttpRequestOptions,
 	type IDataObject,
 	type IExecuteFunctions,
 	type INodeExecutionData,
 	type INodeType,
 	type INodeTypeDescription,
+	type JsonObject,
 } from 'n8n-workflow';
 import { accountOperations, accountFields } from './resources/Account';
 import { transactionOperations, transactionFields } from './resources/Transaction';
@@ -157,16 +159,38 @@ export class ActualBudgetRestApi implements INodeType {
 			const username = credentials.username as string;
 			const password = credentials.password as string;
 
-			const loginResponse = await this.helpers.httpRequest({
-				method: 'POST',
-				url: `${baseUrl}/auth/login`,
-				body: { username, password },
-				json: true,
-			});
+			try {
+				const loginResponse = await this.helpers.httpRequest({
+					method: 'POST',
+					url: `${baseUrl}/auth/login`,
+					body: { username, password },
+					json: true,
+				});
 
-			accessToken = loginResponse.access_token as string;
-			if (!accessToken) {
-				throw new NodeOperationError(this.getNode(), 'Failed to obtain access token');
+				accessToken = loginResponse.access_token as string;
+				if (!accessToken) {
+					throw new NodeOperationError(this.getNode(), 'Failed to obtain access token');
+				}
+			} catch (error) {
+				const err = error as IDataObject & {
+					httpCode?: string;
+					message?: string;
+					response?: { statusCode?: number };
+				};
+
+				const statusCode = err.httpCode || err.response?.statusCode;
+				if (statusCode === '401' || statusCode === 401) {
+					throw new NodeApiError(this.getNode(), err as JsonObject, {
+						message: 'Authentication failed',
+						description: 'Invalid username or password. Please check your JWT credentials.',
+					});
+				}
+
+				// Re-throw other errors
+				throw new NodeApiError(this.getNode(), err as JsonObject, {
+					message: 'Failed to authenticate with JWT',
+					description: err.message || 'Please check your credentials and API base URL.',
+				});
 			}
 		} else {
 			const credentials = await this.getCredentials('actualBudgetRestApiOAuth2Api');
@@ -593,20 +617,96 @@ export class ActualBudgetRestApi implements INodeType {
 					json: true,
 				};
 
-				const responseData =
-					authentication === 'jwt'
-						? await this.helpers.httpRequest(requestOptions)
-						: await this.helpers.httpRequestWithAuthentication.call(
-								this,
-								'actualBudgetRestApiOAuth2Api',
-								requestOptions,
-							);
+				let responseData;
+				try {
+					responseData =
+						authentication === 'jwt'
+							? await this.helpers.httpRequest(requestOptions)
+							: await this.helpers.httpRequestWithAuthentication.call(
+									this,
+									'actualBudgetRestApiOAuth2Api',
+									requestOptions,
+								);
+				} catch (error) {
+					const err = error as IDataObject & {
+						message?: string;
+						statusCode?: number | string;
+						status?: number | string;
+						httpCode?: number | string;
+						code?: number | string;
+						error?: { message?: string };
+						response?: {
+							statusCode?: number | string;
+							status?: number | string;
+							statusText?: string;
+						};
+					};
+
+					// Extract error message and status code from various possible locations
+					const errorMessage = (
+						err?.message ||
+						err?.error?.message ||
+						err?.response?.statusText ||
+						String(err || '')
+					).toLowerCase();
+
+					const statusCodeRaw =
+						err?.statusCode ||
+						err?.status ||
+						err?.httpCode ||
+						err?.code ||
+						err?.response?.statusCode ||
+						err?.response?.status;
+					const statusCode =
+						typeof statusCodeRaw === 'string' ? parseInt(statusCodeRaw, 10) : statusCodeRaw;
+
+					// Check for authentication-related errors
+					const isAuthStatusCode = statusCode === 401 || statusCode === 403;
+					const is400StatusCode = statusCode === 400;
+					const hasAuthKeywords =
+						errorMessage.includes('unauthorized') ||
+						errorMessage.includes('authentication') ||
+						errorMessage.includes('token') ||
+						errorMessage.includes('expired') ||
+						errorMessage.includes('unsupported content type') ||
+						errorMessage.includes('text/html');
+
+					// Treat as auth error if:
+					// 1. Explicit 401/403 status codes
+					// 2. 400 error with OAuth2 (often auth-related when tokens expire)
+					// 3. 400 error with auth-related keywords in message
+					const isAuthError =
+						isAuthStatusCode ||
+						(is400StatusCode && (authentication === 'oAuth2' || hasAuthKeywords));
+
+					if (isAuthError) {
+						const authMethod = authentication === 'jwt' ? 'JWT' : 'OAuth2';
+						throw new NodeApiError(this.getNode(), err as JsonObject, {
+							message: `${authMethod} token has expired or is invalid`,
+							description: `Your ${authMethod} authentication token has expired. Please reconnect your credentials in the node settings to obtain a new token.`,
+						});
+					}
+
+					throw error;
+				}
 
 				returnData.push({
 					json: responseData,
 					pairedItem: { item: i },
 				});
 			} catch (error: unknown) {
+				// If this is already a NodeApiError or NodeOperationError, let it propagate
+				if (error instanceof NodeApiError || error instanceof NodeOperationError) {
+					if (this.continueOnFail()) {
+						returnData.push({
+							json: { error: error.message },
+							pairedItem: { item: i },
+						});
+						continue;
+					}
+					throw error;
+				}
+
 				if (this.continueOnFail()) {
 					// Handle structured error responses from API
 					const err = error as IDataObject & {
