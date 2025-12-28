@@ -20,6 +20,24 @@ import { healthOperations, healthFields } from './resources/Health';
 import { metricsOperations, metricsFields } from './resources/Metrics';
 import { queryOperations, queryFields } from './resources/Query';
 
+// Token cache to avoid rate limiting on login requests
+interface CachedToken {
+	token: string;
+	expiresAt: number; // Unix timestamp in milliseconds
+}
+
+const tokenCache = new Map<string, CachedToken>();
+
+// Helper function to get cache key from credentials
+const getCacheKey = (baseUrl: string, username: string): string => {
+	return `${baseUrl}:${username}`;
+};
+
+// Helper function to check if token is still valid (with 60 second buffer)
+const isTokenValid = (cached: CachedToken): boolean => {
+	return cached.expiresAt > Date.now() + 60000; // 60 second buffer before expiration
+};
+
 export class ActualBudgetRestApi implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Actual Budget REST API',
@@ -159,38 +177,92 @@ export class ActualBudgetRestApi implements INodeType {
 			const username = credentials.username as string;
 			const password = credentials.password as string;
 
-			try {
-				const loginResponse = await this.helpers.httpRequest({
-					method: 'POST',
-					url: `${baseUrl}/auth/login`,
-					body: { username, password },
-					json: true,
-				});
+			// Check cache first to avoid unnecessary login requests
+			const cacheKey = getCacheKey(baseUrl, username);
+			const cached = tokenCache.get(cacheKey);
 
-				accessToken = loginResponse.access_token as string;
-				if (!accessToken) {
-					throw new NodeOperationError(this.getNode(), 'Failed to obtain access token');
-				}
-			} catch (error) {
-				const err = error as IDataObject & {
-					httpCode?: string;
-					message?: string;
-					response?: { statusCode?: number };
-				};
+			if (cached && isTokenValid(cached)) {
+				// Use cached token
+				accessToken = cached.token;
+			} else {
+				// Token not in cache or expired, make login request
+				try {
+					const loginResponse = await this.helpers.httpRequest({
+						method: 'POST',
+						url: `${baseUrl}/auth/login`,
+						body: { username, password },
+						json: true,
+					});
 
-				const statusCode = err.httpCode || err.response?.statusCode;
-				if (statusCode === '401' || statusCode === 401) {
-					throw new NodeApiError(this.getNode(), err as JsonObject, {
-						message: 'Authentication failed',
-						description: 'Invalid username or password. Please check your JWT credentials.',
+					accessToken = loginResponse.access_token as string;
+					if (!accessToken) {
+						throw new NodeOperationError(this.getNode(), 'Failed to obtain access token');
+					}
+
+					// Cache the token with expiration time
+					// Default to 1 hour if expires_in is not provided (with 60 second buffer)
+					const expiresIn = (loginResponse.expires_in as number) || 3600;
+					const expiresAt = Date.now() + (expiresIn - 60) * 1000; // Subtract 60 seconds for safety
+
+					tokenCache.set(cacheKey, {
+						token: accessToken,
+						expiresAt,
+					});
+				} catch (error) {
+					// Extract only serializable properties to avoid circular reference errors
+					const err = error as IDataObject & {
+						httpCode?: string | number;
+						message?: string;
+						statusCode?: number | string;
+						status?: number | string;
+						response?: {
+							statusCode?: number | string;
+							status?: number | string;
+							data?: IDataObject;
+						};
+					};
+
+					const statusCodeRaw =
+						err.httpCode ||
+						err.statusCode ||
+						err.status ||
+						err.response?.statusCode ||
+						err.response?.status;
+					const statusCode =
+						typeof statusCodeRaw === 'string' ? parseInt(statusCodeRaw, 10) : statusCodeRaw;
+
+					// Create clean error object without circular references
+					const cleanError: JsonObject = {
+						message: err?.message || 'Authentication failed',
+					};
+					if (statusCode !== undefined && !isNaN(statusCode)) {
+						cleanError.statusCode = statusCode;
+					}
+					if (err?.response?.data) {
+						cleanError.response = { data: err.response.data as JsonObject };
+					}
+
+					if (statusCode === 401) {
+						throw new NodeApiError(this.getNode(), cleanError, {
+							message: 'Authentication failed',
+							description: 'Invalid username or password. Please check your JWT credentials.',
+						});
+					}
+
+					// Handle rate limiting during login
+					if (statusCode === 429) {
+						throw new NodeApiError(this.getNode(), cleanError, {
+							message: 'Rate limit exceeded',
+							description: 'Too many login attempts. Please wait a moment and try again.',
+						});
+					}
+
+					// Re-throw other errors
+					throw new NodeApiError(this.getNode(), cleanError, {
+						message: 'Failed to authenticate with JWT',
+						description: err.message || 'Please check your credentials and API base URL.',
 					});
 				}
-
-				// Re-throw other errors
-				throw new NodeApiError(this.getNode(), err as JsonObject, {
-					message: 'Failed to authenticate with JWT',
-					description: err.message || 'Please check your credentials and API base URL.',
-				});
 			}
 		} else {
 			const credentials = await this.getCredentials('actualBudgetRestApiOAuth2Api');
@@ -628,6 +700,7 @@ export class ActualBudgetRestApi implements INodeType {
 									requestOptions,
 								);
 				} catch (error) {
+					// Extract only serializable properties to avoid circular reference errors
 					const err = error as IDataObject & {
 						message?: string;
 						statusCode?: number | string;
@@ -639,6 +712,7 @@ export class ActualBudgetRestApi implements INodeType {
 							statusCode?: number | string;
 							status?: number | string;
 							statusText?: string;
+							data?: IDataObject;
 						};
 					};
 
@@ -659,6 +733,22 @@ export class ActualBudgetRestApi implements INodeType {
 						err?.response?.status;
 					const statusCode =
 						typeof statusCodeRaw === 'string' ? parseInt(statusCodeRaw, 10) : statusCodeRaw;
+
+					// Handle rate limiting (429) errors
+					if (statusCode === 429) {
+						const cleanError: JsonObject = {
+							message: err?.message || 'Rate limit exceeded',
+							statusCode: 429,
+						};
+						if (err?.response?.data) {
+							cleanError.response = { data: err.response.data as JsonObject };
+						}
+						throw new NodeApiError(this.getNode(), cleanError, {
+							message: 'Rate limit exceeded',
+							description:
+								'Too many requests. Please wait a moment and try again, or check your rate limiting configuration.',
+						});
+					}
 
 					// Check for authentication-related errors
 					const isAuthStatusCode = statusCode === 401 || statusCode === 403;
@@ -681,13 +771,53 @@ export class ActualBudgetRestApi implements INodeType {
 
 					if (isAuthError) {
 						const authMethod = authentication === 'jwt' ? 'JWT' : 'OAuth2';
-						throw new NodeApiError(this.getNode(), err as JsonObject, {
+
+						// If using JWT and got 401, clear the cached token so we get a fresh one next time
+						if (authentication === 'jwt' && statusCode === 401) {
+							const credentials = await this.getCredentials('actualBudgetRestApiJwtApi');
+							const cacheKey = getCacheKey(
+								credentials.baseUrl as string,
+								credentials.username as string,
+							);
+							tokenCache.delete(cacheKey);
+						}
+
+						const cleanError: JsonObject = {
+							message: err?.message || 'Authentication failed',
+						};
+						if (statusCode !== undefined && !isNaN(statusCode)) {
+							cleanError.statusCode = statusCode;
+						}
+						if (err?.response?.data) {
+							cleanError.response = { data: err.response.data as JsonObject };
+						}
+						throw new NodeApiError(this.getNode(), cleanError, {
 							message: `${authMethod} token has expired or is invalid`,
 							description: `Your ${authMethod} authentication token has expired. Please reconnect your credentials in the node settings to obtain a new token.`,
 						});
 					}
 
-					throw error;
+					// For other errors, create a clean error object without circular references
+					const cleanError: JsonObject = {
+						message: err?.message || 'Request failed',
+					};
+					if (statusCode !== undefined && !isNaN(statusCode)) {
+						cleanError.statusCode = statusCode;
+					}
+					if (err?.response?.data) {
+						cleanError.response = { data: err.response.data as JsonObject };
+					}
+					if (err?.response?.statusText) {
+						if (!cleanError.response) cleanError.response = {};
+						(cleanError.response as JsonObject).statusText = err.response.statusText;
+					}
+
+					throw new NodeApiError(this.getNode(), cleanError, {
+						message: err?.message || 'Request failed',
+						description: statusCode
+							? `Request failed with status code ${statusCode}`
+							: 'Please check your request parameters and try again.',
+					});
 				}
 
 				returnData.push({
