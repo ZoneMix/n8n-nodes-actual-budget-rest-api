@@ -10,11 +10,11 @@ export class ActualBudgetRestApiJwtApi implements ICredentialType {
 			displayName: 'Base URL',
 			name: 'baseUrl',
 			type: 'string',
-			default: 'http://localhost:3000',
+			default: 'http://actual-rest-api-dev:3000',
 			required: true,
 			placeholder: 'https://actual-api.example.com',
 			description:
-				'The base URL of your Actual Budget REST API. Default is for local development. Update to your production URL (e.g., https://actual-api.example.com).',
+				'The base URL of your Actual Budget REST API (without /v2). Default is for local development. Update to your production URL (e.g., https://actual-api.example.com).',
 		},
 		{
 			displayName: 'Username',
@@ -36,7 +36,7 @@ export class ActualBudgetRestApiJwtApi implements ICredentialType {
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL: '={{$credentials.baseUrl}}',
-			url: '/health',
+			url: '/v2/health',
 		},
 	};
 }

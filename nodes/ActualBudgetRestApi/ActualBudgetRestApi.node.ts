@@ -189,7 +189,7 @@ export class ActualBudgetRestApi implements INodeType {
 				try {
 					const loginResponse = await this.helpers.httpRequest({
 						method: 'POST',
-						url: `${baseUrl}/auth/login`,
+						url: `${baseUrl}/v2/auth/login`,
 						body: { username, password },
 						json: true,
 					});
@@ -308,7 +308,7 @@ export class ActualBudgetRestApi implements INodeType {
 						switch (operation) {
 							case 'create': {
 								method = 'POST';
-								endpoint = '/accounts';
+								endpoint = '/v2/accounts';
 								const accountName = this.getNodeParameter('accountName', i) as string;
 								const offbudget = this.getNodeParameter('offbudget', i) as boolean;
 								const closed = this.getNodeParameter('closed', i) as boolean;
@@ -319,19 +319,19 @@ export class ActualBudgetRestApi implements INodeType {
 							}
 							case 'getAll': {
 								method = 'GET';
-								endpoint = '/accounts';
+								endpoint = '/v2/accounts';
 								break;
 							}
 							case 'getBalance': {
 								method = 'GET';
 								const accountId = this.getNodeParameter('accountId', i) as string;
-								endpoint = `/accounts/${accountId}/balance`;
+								endpoint = `/v2/accounts/${accountId}/balance`;
 								break;
 							}
 							case 'update': {
 								method = 'PUT';
 								const accountId = this.getNodeParameter('accountId', i) as string;
-								endpoint = `/accounts/${accountId}`;
+								endpoint = `/v2/accounts/${accountId}`;
 								const updateFields = this.getNodeParameter('updateFields', i, {}) as IDataObject;
 								if (Object.keys(updateFields).length) {
 									body.fields = updateFields;
@@ -341,19 +341,19 @@ export class ActualBudgetRestApi implements INodeType {
 							case 'delete': {
 								method = 'DELETE';
 								const accountId = this.getNodeParameter('accountId', i) as string;
-								endpoint = `/accounts/${accountId}`;
+								endpoint = `/v2/accounts/${accountId}`;
 								break;
 							}
 							case 'close': {
 								method = 'POST';
 								const accountId = this.getNodeParameter('accountId', i) as string;
-								endpoint = `/accounts/${accountId}/close`;
+								endpoint = `/v2/accounts/${accountId}/close`;
 								break;
 							}
 							case 'reopen': {
 								method = 'POST';
 								const accountId = this.getNodeParameter('accountId', i) as string;
-								endpoint = `/accounts/${accountId}/reopen`;
+								endpoint = `/v2/accounts/${accountId}/reopen`;
 								break;
 							}
 							default:
@@ -369,7 +369,7 @@ export class ActualBudgetRestApi implements INodeType {
 							case 'getAll': {
 								method = 'GET';
 								const accountId = this.getNodeParameter('accountId', i) as string;
-								endpoint = `/accounts/${accountId}/transactions`;
+								endpoint = `/v2/accounts/${accountId}/transactions`;
 								const filters = this.getNodeParameter('filters', i, {}) as IDataObject;
 								if (filters.start) qs.start = filters.start;
 								if (filters.end) qs.end = filters.end;
@@ -379,7 +379,7 @@ export class ActualBudgetRestApi implements INodeType {
 							case 'import': {
 								method = 'POST';
 								const accountId = this.getNodeParameter('accountId', i) as string;
-								endpoint = `/accounts/${accountId}/transactions${operation === 'import' ? '/import' : ''}`;
+								endpoint = `/v2/accounts/${accountId}/transactions${operation === 'import' ? '/import' : ''}`;
 								const transactions = this.getNodeParameter('transactions', i) as IDataObject;
 								body.transactions = transactions?.transaction as IDataObject[];
 								if (operation === 'create') {
@@ -393,7 +393,7 @@ export class ActualBudgetRestApi implements INodeType {
 							case 'update': {
 								method = 'PUT';
 								const transactionId = this.getNodeParameter('transactionId', i) as string;
-								endpoint = `/transactions/${transactionId}`;
+								endpoint = `/v2/transactions/${transactionId}`;
 								const updateFields = this.getNodeParameter('updateFields', i, {}) as IDataObject;
 								if (Object.keys(updateFields).length) {
 									body.fields = updateFields;
@@ -403,7 +403,7 @@ export class ActualBudgetRestApi implements INodeType {
 							case 'delete': {
 								method = 'DELETE';
 								const transactionId = this.getNodeParameter('transactionId', i) as string;
-								endpoint = `/transactions/${transactionId}`;
+								endpoint = `/v2/transactions/${transactionId}`;
 								break;
 							}
 							default:
@@ -418,20 +418,20 @@ export class ActualBudgetRestApi implements INodeType {
 						switch (operation) {
 							case 'getMonths': {
 								method = 'GET';
-								endpoint = '/budgets/months';
+								endpoint = '/v2/budgets/months';
 								break;
 							}
 							case 'getMonth': {
 								method = 'GET';
 								const month = this.getNodeParameter('month', i) as string;
-								endpoint = `/budgets/${month}`;
+								endpoint = `/v2/budgets/${month}`;
 								break;
 							}
 							case 'setCategoryBudget': {
 								method = 'POST';
 								const month = this.getNodeParameter('month', i) as string;
 								const categoryId = this.getNodeParameter('categoryId', i) as string;
-								endpoint = `/budgets/${month}/categories/${categoryId}/budget`;
+								endpoint = `/v2/budgets/${month}/categories/${categoryId}/budget`;
 								body.amount = this.getNodeParameter('amount', i) as number;
 								break;
 							}
@@ -439,21 +439,21 @@ export class ActualBudgetRestApi implements INodeType {
 								method = 'POST';
 								const month = this.getNodeParameter('month', i) as string;
 								const categoryId = this.getNodeParameter('categoryId', i) as string;
-								endpoint = `/budgets/${month}/categories/${categoryId}/carryover`;
+								endpoint = `/v2/budgets/${month}/categories/${categoryId}/carryover`;
 								body.flag = this.getNodeParameter('flag', i) as boolean;
 								break;
 							}
 							case 'hold': {
 								method = 'POST';
 								const month = this.getNodeParameter('month', i) as string;
-								endpoint = `/budgets/${month}/hold`;
+								endpoint = `/v2/budgets/${month}/hold`;
 								body.amount = this.getNodeParameter('amount', i) as number;
 								break;
 							}
 							case 'resetHold': {
 								method = 'POST';
 								const month = this.getNodeParameter('month', i) as string;
-								endpoint = `/budgets/${month}/reset-hold`;
+								endpoint = `/v2/budgets/${month}/reset-hold`;
 								break;
 							}
 							default:
@@ -468,12 +468,12 @@ export class ActualBudgetRestApi implements INodeType {
 						switch (operation) {
 							case 'getAll': {
 								method = 'GET';
-								endpoint = '/categories';
+								endpoint = '/v2/categories';
 								break;
 							}
 							case 'create': {
 								method = 'POST';
-								endpoint = '/categories';
+								endpoint = '/v2/categories';
 								body.category = {
 									name: this.getNodeParameter('categoryName', i) as string,
 									group_id: this.getNodeParameter('groupId', i) as string,
@@ -483,7 +483,7 @@ export class ActualBudgetRestApi implements INodeType {
 							case 'update': {
 								method = 'PUT';
 								const categoryId = this.getNodeParameter('categoryId', i) as string;
-								endpoint = `/categories/${categoryId}`;
+								endpoint = `/v2/categories/${categoryId}`;
 								const updateFields = this.getNodeParameter('updateFields', i, {}) as IDataObject;
 								if (Object.keys(updateFields).length) body.fields = updateFields;
 								break;
@@ -491,7 +491,7 @@ export class ActualBudgetRestApi implements INodeType {
 							case 'delete': {
 								method = 'DELETE';
 								const categoryId = this.getNodeParameter('categoryId', i) as string;
-								endpoint = `/categories/${categoryId}`;
+								endpoint = `/v2/categories/${categoryId}`;
 								break;
 							}
 							default:
@@ -506,12 +506,12 @@ export class ActualBudgetRestApi implements INodeType {
 						switch (operation) {
 							case 'getAll': {
 								method = 'GET';
-								endpoint = '/category-groups';
+								endpoint = '/v2/category-groups';
 								break;
 							}
 							case 'create': {
 								method = 'POST';
-								endpoint = '/category-groups';
+								endpoint = '/v2/category-groups';
 								body.group = {
 									name: this.getNodeParameter('groupName', i) as string,
 									is_income: this.getNodeParameter('isIncome', i) as boolean,
@@ -521,7 +521,7 @@ export class ActualBudgetRestApi implements INodeType {
 							case 'update': {
 								method = 'PUT';
 								const groupId = this.getNodeParameter('groupId', i) as string;
-								endpoint = `/category-groups/${groupId}`;
+								endpoint = `/v2/category-groups/${groupId}`;
 								const updateFields = this.getNodeParameter('updateFields', i, {}) as IDataObject;
 								if (Object.keys(updateFields).length) body.fields = updateFields;
 								break;
@@ -529,7 +529,7 @@ export class ActualBudgetRestApi implements INodeType {
 							case 'delete': {
 								method = 'DELETE';
 								const groupId = this.getNodeParameter('groupId', i) as string;
-								endpoint = `/category-groups/${groupId}`;
+								endpoint = `/v2/category-groups/${groupId}`;
 								break;
 							}
 							default:
@@ -544,12 +544,12 @@ export class ActualBudgetRestApi implements INodeType {
 						switch (operation) {
 							case 'getAll': {
 								method = 'GET';
-								endpoint = '/payees';
+								endpoint = '/v2/payees';
 								break;
 							}
 							case 'create': {
 								method = 'POST';
-								endpoint = '/payees';
+								endpoint = '/v2/payees';
 								body.payee = {
 									name: this.getNodeParameter('payeeName', i) as string,
 									transfer_acct: this.getNodeParameter('transferAccountId', i) as string,
@@ -559,7 +559,7 @@ export class ActualBudgetRestApi implements INodeType {
 							case 'update': {
 								method = 'PUT';
 								const payeeId = this.getNodeParameter('payeeId', i) as string;
-								endpoint = `/payees/${payeeId}`;
+								endpoint = `/v2/payees/${payeeId}`;
 								const updateFields = this.getNodeParameter('updateFields', i, {}) as IDataObject;
 								if (Object.keys(updateFields).length) body.fields = updateFields;
 								break;
@@ -567,12 +567,12 @@ export class ActualBudgetRestApi implements INodeType {
 							case 'delete': {
 								method = 'DELETE';
 								const payeeId = this.getNodeParameter('payeeId', i) as string;
-								endpoint = `/payees/${payeeId}`;
+								endpoint = `/v2/payees/${payeeId}`;
 								break;
 							}
 							case 'merge': {
 								method = 'POST';
-								endpoint = '/payees/merge';
+								endpoint = '/v2/payees/merge';
 								body.targetId = this.getNodeParameter('targetId', i) as string;
 								const mergeIds = this.getNodeParameter('mergeIds', i) as string;
 								body.mergeIds = mergeIds.split(',').map((id) => id.trim());
@@ -588,24 +588,24 @@ export class ActualBudgetRestApi implements INodeType {
 					}
 					case 'health': {
 						method = 'GET';
-						endpoint = '/health';
+						endpoint = '/v2/health';
 						break;
 					}
 					case 'metrics': {
 						switch (operation) {
 							case 'getFull': {
 								method = 'GET';
-								endpoint = '/metrics';
+								endpoint = '/v2/metrics';
 								break;
 							}
 							case 'getSummary': {
 								method = 'GET';
-								endpoint = '/metrics/summary';
+								endpoint = '/v2/metrics/summary';
 								break;
 							}
 							case 'reset': {
 								method = 'POST';
-								endpoint = '/metrics/reset';
+								endpoint = '/v2/metrics/reset';
 								break;
 							}
 							default:
@@ -619,7 +619,7 @@ export class ActualBudgetRestApi implements INodeType {
 					case 'query': {
 						if (operation === 'execute') {
 							method = 'POST';
-							endpoint = '/query';
+							endpoint = '/v2/query';
 							const table = this.getNodeParameter('table', i) as string;
 							const select = this.getNodeParameter('select', i) as string;
 							const filterParam = this.getNodeParameter('filter', i) as string;

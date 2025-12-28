@@ -20,7 +20,7 @@ export const transactionOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '=/accounts/{{$parameter.accountId}}/transactions',
+						url: '=/v2/accounts/{{$parameter.accountId}}/transactions',
 					},
 				},
 			},
@@ -32,7 +32,7 @@ export const transactionOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'DELETE',
-						url: '=/transactions/{{$parameter.transactionId}}',
+						url: '=/v2/transactions/{{$parameter.transactionId}}',
 					},
 				},
 			},
@@ -44,7 +44,7 @@ export const transactionOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'GET',
-						url: '=/accounts/{{$parameter.accountId}}/transactions',
+						url: '=/v2/accounts/{{$parameter.accountId}}/transactions',
 					},
 				},
 			},
@@ -56,7 +56,7 @@ export const transactionOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '=/accounts/{{$parameter.accountId}}/transactions/import',
+						url: '=/v2/accounts/{{$parameter.accountId}}/transactions/import',
 					},
 				},
 			},
@@ -68,7 +68,7 @@ export const transactionOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'PUT',
-						url: '=/transactions/{{$parameter.transactionId}}',
+						url: '=/v2/transactions/{{$parameter.transactionId}}',
 					},
 				},
 			},

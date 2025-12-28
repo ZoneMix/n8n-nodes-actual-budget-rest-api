@@ -112,10 +112,10 @@ Schedule (Monthly) → Actual Budget (Set Category Budget) → Email (Confirmati
 All operations map directly to the [Actual Budget REST API](https://github.com/zonemix/actual-budget-rest-api) endpoints documented in the OpenAPI spec.
 
 ### Endpoint Mapping Examples
-- `GET /accounts` → Account: Get Many
-- `POST /accounts` → Account: Create
-- `GET /accounts/:id/transactions` → Transaction: Get Many
-- `POST /budgets/:month/categories/:categoryId/budget` → Budget: Set Category Budget
+- `GET /v2/accounts` → Account: Get Many
+- `POST /v2/accounts` → Account: Create
+- `GET /v2/accounts/:id/transactions` → Transaction: Get Many
+- `POST /v2/budgets/:month/categories/:categoryId/budget` → Budget: Set Category Budget
 
 ## Development Status
 

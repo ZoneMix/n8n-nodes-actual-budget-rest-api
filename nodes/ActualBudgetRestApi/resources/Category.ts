@@ -20,7 +20,7 @@ export const categoryOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'GET',
-						url: '/categories',
+						url: '/v2/categories',
 					},
 				},
 			},
@@ -32,7 +32,7 @@ export const categoryOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '/categories',
+						url: '/v2/categories',
 					},
 				},
 			},
@@ -44,7 +44,7 @@ export const categoryOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'PUT',
-						url: '=/categories/{{$parameter.categoryId}}',
+						url: '=/v2/categories/{{$parameter.categoryId}}',
 					},
 				},
 			},
@@ -56,7 +56,7 @@ export const categoryOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'DELETE',
-						url: '=/categories/{{$parameter.categoryId}}',
+						url: '=/v2/categories/{{$parameter.categoryId}}',
 					},
 				},
 			},

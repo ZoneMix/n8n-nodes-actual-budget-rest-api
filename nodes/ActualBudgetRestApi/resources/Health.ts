@@ -21,7 +21,7 @@ export const healthOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'GET',
-						url: '/health',
+						url: '/v2/health',
 					},
 				},
 			},

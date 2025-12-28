@@ -20,7 +20,7 @@ export const payeeOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '/payees',
+						url: '/v2/payees',
 					},
 				},
 			},
@@ -32,7 +32,7 @@ export const payeeOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'DELETE',
-						url: '=/payees/{{$parameter.payeeId}}',
+						url: '=/v2/payees/{{$parameter.payeeId}}',
 					},
 				},
 			},
@@ -44,7 +44,7 @@ export const payeeOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'GET',
-						url: '/payees',
+						url: '/v2/payees',
 					},
 				},
 			},
@@ -56,7 +56,7 @@ export const payeeOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '/payees/merge',
+						url: '/v2/payees/merge',
 					},
 				},
 			},
@@ -68,7 +68,7 @@ export const payeeOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'PUT',
-						url: '=/payees/{{$parameter.payeeId}}',
+						url: '=/v2/payees/{{$parameter.payeeId}}',
 					},
 				},
 			},

@@ -20,7 +20,7 @@ export const categoryGroupOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'GET',
-						url: '/category-groups',
+						url: '/v2/category-groups',
 					},
 				},
 			},
@@ -32,7 +32,7 @@ export const categoryGroupOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '/category-groups',
+						url: '/v2/category-groups',
 					},
 				},
 			},
@@ -44,7 +44,7 @@ export const categoryGroupOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'PUT',
-						url: '=/category-groups/{{$parameter.groupId}}',
+						url: '=/v2/category-groups/{{$parameter.groupId}}',
 					},
 				},
 			},
@@ -56,7 +56,7 @@ export const categoryGroupOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'DELETE',
-						url: '=/category-groups/{{$parameter.groupId}}',
+						url: '=/v2/category-groups/{{$parameter.groupId}}',
 					},
 				},
 			},

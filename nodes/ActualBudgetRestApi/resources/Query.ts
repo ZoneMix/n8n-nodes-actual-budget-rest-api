@@ -20,7 +20,7 @@ export const queryOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '/query',
+						url: '/v2/query',
 					},
 				},
 			},

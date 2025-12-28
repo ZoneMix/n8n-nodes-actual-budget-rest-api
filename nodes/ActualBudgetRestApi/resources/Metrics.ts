@@ -20,7 +20,7 @@ export const metricsOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'GET',
-						url: '/metrics',
+						url: '/v2/metrics',
 					},
 				},
 			},
@@ -32,7 +32,7 @@ export const metricsOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'GET',
-						url: '/metrics/summary',
+						url: '/v2/metrics/summary',
 					},
 				},
 			},
@@ -44,7 +44,7 @@ export const metricsOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '/metrics/reset',
+						url: '/v2/metrics/reset',
 					},
 				},
 			},

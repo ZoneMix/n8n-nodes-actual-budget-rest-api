@@ -20,7 +20,7 @@ export const budgetOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'GET',
-						url: '=/budgets/{{$parameter.month}}',
+						url: '=/v2/budgets/{{$parameter.month}}',
 					},
 				},
 			},
@@ -32,7 +32,7 @@ export const budgetOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'GET',
-						url: '/budgets/months',
+						url: '/v2/budgets/months',
 					},
 				},
 			},
@@ -44,7 +44,7 @@ export const budgetOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '=/budgets/{{$parameter.month}}/hold',
+						url: '=/v2/budgets/{{$parameter.month}}/hold',
 					},
 				},
 			},
@@ -56,7 +56,7 @@ export const budgetOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '=/budgets/{{$parameter.month}}/reset-hold',
+						url: '=/v2/budgets/{{$parameter.month}}/reset-hold',
 					},
 				},
 			},
@@ -68,7 +68,7 @@ export const budgetOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '=/budgets/{{$parameter.month}}/categories/{{$parameter.categoryId}}/budget',
+						url: '=/v2/budgets/{{$parameter.month}}/categories/{{$parameter.categoryId}}/budget',
 					},
 				},
 			},
@@ -80,7 +80,7 @@ export const budgetOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '=/budgets/{{$parameter.month}}/categories/{{$parameter.categoryId}}/carryover',
+						url: '=/v2/budgets/{{$parameter.month}}/categories/{{$parameter.categoryId}}/carryover',
 					},
 				},
 			},

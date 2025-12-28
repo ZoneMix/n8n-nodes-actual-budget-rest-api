@@ -20,7 +20,7 @@ export const accountOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '=/accounts/{{$parameter.accountId}}/close',
+						url: '=/v2/accounts/{{$parameter.accountId}}/close',
 					},
 				},
 			},
@@ -32,7 +32,7 @@ export const accountOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '/accounts',
+						url: '/v2/accounts',
 					},
 				},
 			},
@@ -44,7 +44,7 @@ export const accountOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'DELETE',
-						url: '=/accounts/{{$parameter.accountId}}',
+						url: '=/v2/accounts/{{$parameter.accountId}}',
 					},
 				},
 			},
@@ -56,7 +56,7 @@ export const accountOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'GET',
-						url: '=/accounts/{{$parameter.accountId}}/balance',
+						url: '=/v2/accounts/{{$parameter.accountId}}/balance',
 					},
 				},
 			},
@@ -68,7 +68,7 @@ export const accountOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'GET',
-						url: '/accounts',
+						url: '/v2/accounts',
 					},
 				},
 			},
@@ -80,7 +80,7 @@ export const accountOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '=/accounts/{{$parameter.accountId}}/reopen',
+						url: '=/v2/accounts/{{$parameter.accountId}}/reopen',
 					},
 				},
 			},
@@ -92,7 +92,7 @@ export const accountOperations: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'PUT',
-						url: '=/accounts/{{$parameter.accountId}}',
+						url: '=/v2/accounts/{{$parameter.accountId}}',
 					},
 				},
 			},
