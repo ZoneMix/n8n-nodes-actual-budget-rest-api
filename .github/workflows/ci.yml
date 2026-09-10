@@ -16,7 +16,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['22', '24']
+        # The build toolchain (@n8n/node-cli 0.47 → isolated-vm 7) needs Node >= 24;
+        # the published dist is plain JS and runs on whatever Node n8n ships.
+        node-version: ['24']
 
     steps:
       - name: Checkout code
