@@ -69,6 +69,9 @@ cleared directly, and `imported_payee`, `payee_name`, `reconciled`, `transfer_id
 the `opts` object: default cleared, dry run, reimport deleted and payee name
 normalisation.
 
+Update accepts the same widened set, so adding Subtransactions to an existing
+transaction is how you split one after the fact.
+
 ### Category
 
 | Operation | Request |
