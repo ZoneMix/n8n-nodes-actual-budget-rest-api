@@ -1,12 +1,10 @@
 import {
 	NodeConnectionTypes,
-	NodeApiError,
 	NodeOperationError,
 	type ICredentialDataDecryptedObject,
 	type IDataObject,
 	type IExecuteFunctions,
 	type IN8nHttpFullResponse,
-	type INode,
 	type INodeExecutionData,
 	type INodeType,
 	type INodeTypeDescription,
@@ -30,19 +28,17 @@ import { systemOperations, systemFields } from './resources/System';
 import { tagOperations, tagFields } from './resources/Tag';
 import { RESOURCE_OPTIONS } from './resources/resourceOptions';
 import { buildRequest } from './requests';
-import { RequestBuildError, type BuiltRequest, type ParamGetter } from './requests/types';
+import type { BuiltRequest, ParamGetter } from './requests/types';
 import {
 	apiRequest,
-	buildCleanError,
 	extractErrorDetails,
 	filenameFromContentDisposition,
-	isAuthenticationFailure,
 	resolveOAuth2BaseUrl,
 	credentialName,
 	type ApiSession,
 	type AuthType,
-	type ErrorDetails,
 } from './GenericFunctions';
+import { errorJson, nodeErrorFrom } from './nodeErrors';
 import { authenticateJwt } from './auth';
 import { cacheKey, clearToken } from './tokenCache';
 
@@ -77,69 +73,6 @@ const toExecutionData = async (
 		built.binary.mimeType,
 	);
 	return { json: {}, binary: { data }, pairedItem: { item: itemIndex } };
-};
-
-/** The `continueOnFail` payload: the API's own error envelope where there is one. */
-const errorJson = (error: unknown, details: ErrorDetails): IDataObject => {
-	if (error instanceof NodeApiError || error instanceof NodeOperationError) {
-		return { error: error.message };
-	}
-	if (error instanceof RequestBuildError) {
-		return { error: error.message };
-	}
-
-	const payload = details.data ?? (error as { json?: IDataObject }).json;
-	if (!payload) {
-		return { error: details.message };
-	}
-	return {
-		error: payload.error ?? details.message,
-		requestId: payload.requestId,
-		code: payload.code,
-		details: payload.details,
-	};
-};
-
-const nodeErrorFrom = (
-	node: INode,
-	error: unknown,
-	details: ErrorDetails,
-	authType: AuthType,
-	itemIndex: number,
-): NodeApiError | NodeOperationError => {
-	if (error instanceof NodeApiError || error instanceof NodeOperationError) {
-		return error;
-	}
-	if (error instanceof RequestBuildError) {
-		return new NodeOperationError(node, error.message, { itemIndex });
-	}
-
-	const clean = buildCleanError(details);
-	if (details.statusCode === 429) {
-		return new NodeApiError(node, clean, {
-			message: 'Rate limit exceeded',
-			description:
-				'Too many requests. Please wait a moment and try again, or check your rate limiting configuration.',
-			itemIndex,
-		});
-	}
-	if (isAuthenticationFailure(details, authType)) {
-		const label = authType === 'jwt' ? 'JWT' : 'OAuth2';
-		return new NodeApiError(node, clean, {
-			message: `${label} token has expired or is invalid`,
-			description: `Your ${label} authentication token has expired. Please reconnect your credentials in the node settings to obtain a new token.`,
-			itemIndex,
-		});
-	}
-
-	const apiMessage = typeof details.data?.error === 'string' ? details.data.error : details.message;
-	return new NodeApiError(node, clean, {
-		message: apiMessage,
-		description: details.statusCode
-			? `Request failed with status code ${details.statusCode}`
-			: 'Please check your request parameters and try again.',
-		itemIndex,
-	});
 };
 
 export class ActualBudgetRestApi implements INodeType {
