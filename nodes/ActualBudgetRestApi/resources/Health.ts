@@ -18,12 +18,6 @@ export const healthOperations: INodeProperties[] = [
 				action: 'Health check',
 				description:
 					'Check API health status. In production, only shows service status. In development, includes system details.',
-				routing: {
-					request: {
-						method: 'GET',
-						url: '/v2/health',
-					},
-				},
 			},
 		],
 		default: 'check',

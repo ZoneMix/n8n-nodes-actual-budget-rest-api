@@ -188,6 +188,38 @@ describe('transaction request builder', () => {
 		});
 	});
 
+	it('splits an existing transaction through the update fields', () => {
+		const get = params({
+			transactionId: 't1',
+			updateFields: {
+				payee_name: 'Kroger',
+				imported_id: 'bank-1',
+				starting_balance_flag: false,
+				subtransactions: '[{"amount":-2000,"category":"c1"},{"amount":-2599,"category":"c2"}]',
+			},
+		});
+		assert.deepEqual(buildTransactionRequest('update', get), {
+			method: 'PUT',
+			endpoint: '/v2/transactions/t1',
+			body: {
+				fields: {
+					payee_name: 'Kroger',
+					imported_id: 'bank-1',
+					starting_balance_flag: false,
+					subtransactions: [
+						{ amount: -2000, category: 'c1' },
+						{ amount: -2599, category: 'c2' },
+					],
+				},
+			},
+		});
+	});
+
+	it('rejects malformed subtransactions in an update', () => {
+		const get = params({ transactionId: 't1', updateFields: { subtransactions: '{oops' } });
+		assert.throws(() => buildTransactionRequest('update', get), /^RequestBuildError: Invalid Subtransactions JSON/);
+	});
+
 	it('deletes a transaction', () => {
 		assert.deepEqual(buildTransactionRequest('delete', params({ transactionId: 't1' })), {
 			method: 'DELETE',

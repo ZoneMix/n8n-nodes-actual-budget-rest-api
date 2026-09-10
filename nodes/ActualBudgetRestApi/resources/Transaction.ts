@@ -156,6 +156,13 @@ export const transactionFields: INodeProperties[] = [
 				description: 'Date in YYYY-MM-DD format',
 			},
 			{
+				displayName: 'Imported ID',
+				name: 'imported_id',
+				type: 'string',
+				default: '',
+				description: 'Unique bank ID used to deduplicate on import',
+			},
+			{
 				displayName: 'Imported Payee',
 				name: 'imported_payee',
 				type: 'string',
@@ -170,6 +177,13 @@ export const transactionFields: INodeProperties[] = [
 				description: 'Free-text notes for the transaction',
 			},
 			{
+				displayName: 'Payee Name',
+				name: 'payee_name',
+				type: 'string',
+				default: '',
+				description: 'Payee name to create or match instead of an ID',
+			},
+			{
 				displayName: 'Payee Name or ID',
 				name: 'payee',
 				type: 'string',
@@ -182,6 +196,21 @@ export const transactionFields: INodeProperties[] = [
 				type: 'boolean',
 				default: false,
 				description: 'Whether the transaction is locked as reconciled',
+			},
+			{
+				displayName: 'Starting Balance Flag',
+				name: 'starting_balance_flag',
+				type: 'boolean',
+				default: false,
+				description: 'Whether this transaction is the starting balance of the account',
+			},
+			{
+				displayName: 'Subtransactions (JSON)',
+				name: 'subtransactions',
+				type: 'json',
+				default: '[]',
+				description:
+					'JSON array of splits, which turns this transaction into a split. Each entry needs an amount in cents and may set a category, notes or a payee. The split amounts must add up to the transaction amount.',
 			},
 			{
 				displayName: 'Transfer ID',

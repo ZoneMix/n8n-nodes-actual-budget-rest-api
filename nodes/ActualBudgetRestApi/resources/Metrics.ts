@@ -17,36 +17,18 @@ export const metricsOperations: INodeProperties[] = [
 				value: 'getFull',
 				action: 'Get full metrics',
 				description: 'Get comprehensive metrics snapshot (all metrics)',
-				routing: {
-					request: {
-						method: 'GET',
-						url: '/v2/metrics',
-					},
-				},
 			},
 			{
 				name: 'Get Summary',
 				value: 'getSummary',
 				action: 'Get summary metrics',
 				description: 'Get lightweight summary metrics only',
-				routing: {
-					request: {
-						method: 'GET',
-						url: '/v2/metrics/summary',
-					},
-				},
 			},
 			{
 				name: 'Reset',
 				value: 'reset',
 				action: 'Reset metrics',
 				description: 'Reset all metrics counters to zero',
-				routing: {
-					request: {
-						method: 'POST',
-						url: '/v2/metrics/reset',
-					},
-				},
 			},
 		],
 		default: 'getSummary',
@@ -54,4 +36,3 @@ export const metricsOperations: INodeProperties[] = [
 ];
 
 export const metricsFields: INodeProperties[] = [];
-

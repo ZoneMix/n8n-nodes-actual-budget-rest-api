@@ -55,8 +55,10 @@ export const buildTransactionRequest = (operation: string, get: ParamGetter): Bu
 				body: importBody(get),
 			});
 		case 'update':
+			// Update accepts the same widened fields as Create, subtransactions
+			// included — splitting an existing transaction goes through here.
 			return request('PUT', `/v2/transactions/${get<string>('transactionId')}`, {
-				body: updateBody(get<IDataObject>('updateFields', {})),
+				body: updateBody(withSubtransactions(get<IDataObject>('updateFields', {}))),
 			});
 		case 'delete':
 			return request('DELETE', `/v2/transactions/${get<string>('transactionId')}`);
