@@ -26,7 +26,7 @@ up from 36 across 9. Requires the API wrapper at v2.3.0 or later.
 - **Bank Sync** — Run, to pull transactions from an account's bank connection.
 - **Budget: Batch Update** — up to 500 amount and carryover changes in one call.
 - **Payee: Get Common** — the payees used most often.
-- Account Create and Update take `account_group_id`; Create also takes `closed`.
+- Account Create and Update take `account_group_id`.
 - Transaction Create, Import and Update take `imported_payee`, `payee_name`,
   `reconciled`, `transfer_id`, `starting_balance_flag` and `subtransactions`;
   Import takes the `opts` object (default cleared, dry run, reimport deleted,
@@ -36,7 +36,7 @@ up from 36 across 9. Requires the API wrapper at v2.3.0 or later.
 - Query takes `orderBy`, `groupBy`, `calculate`, `limit`, `offset` and
   `options.splits`. Responses now carry `data` and `truncated`; `result` is a
   deprecated alias the API still returns.
-- Test suite: 151 assertions over Node's own test runner, covering the request
+- Test suite: 157 assertions over Node's own test runner, covering the request
   every operation builds plus the shared helpers.
 
 ### Changed
@@ -58,13 +58,16 @@ up from 36 across 9. Requires the API wrapper at v2.3.0 or later.
   transfer account and category. Both were collected in the UI and dropped.
 - Query Limit is sent at the top level of the query. It was nested under
   `options`, which the API rejects because that object is strict.
-- Close Account sends the transfer category as `transferCategoryId`, the name
-  the API expects, rather than `categoryId`.
+- Close Account sends the transfer category as `transferCategoryId`, the name the
+  API expects. The inert routing block it replaced named the field `categoryId`,
+  so following that description would have produced a request the API ignores.
 
 ### Removed
 
-- The Transfer Account ID field on Payee Create and Update. The API has never
-  accepted `transfer_acct` on a payee; the value was silently discarded.
+- The Transfer Account ID field on Payee Create and Update. The schemas the API
+  enforces accept only `name`, so the value was stripped before it reached Actual.
+  The published spec still lists `transfer_acct`; if the API is widened to match
+  it, the field comes back.
 - `routing` blocks in the resource descriptions. A node with an `execute()`
   method ignores them, so they were dead code that duplicated every endpoint.
 - `PROJECT_SUMMARY.md`, which described a proof of concept the node outgrew.
