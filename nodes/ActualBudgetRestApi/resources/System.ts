@@ -100,16 +100,18 @@ export const systemFields: INodeProperties[] = [
 		description: 'Exact name of the entity to resolve',
 	},
 	{
-		displayName: 'Sync ID',
-		name: 'syncId',
+		displayName: 'Budget ID',
+		name: 'budgetId',
 		type: 'string',
 		default: '',
+		required: true,
 		displayOptions: {
 			show: {
 				resource: ['system'],
 				operation: ['loadBudget'],
 			},
 		},
-		description: 'Budget file to load. Leave empty to load the file the API is configured for.',
+		description:
+			'An ID from Get Budget Files. Loading swaps the open budget for the whole API process and needs an admin token.',
 	},
 ];

@@ -14,12 +14,15 @@ up from 36 across 9. Requires the API wrapper at v2.3.0 or later.
 - **Rule** — Get Many, Get For Payee, Create, Update, Delete.
 - **Schedule** — Get Many, Create, Update (with Reset Next Date), Delete.
 - **Tag** — Get Many, Create, Update, Delete.
-- **Note** — Get, Update, for any account, category, payee or schedule.
+- **Note** — Get, Update, for any account, category, payee or schedule. An empty
+  note field sends `null`, which is how the API clears a note.
 - **Preference** — Get.
 - **Account Group** — Get Many, Create, Update, Delete.
 - **System** — Get Server Version, Sync Now, Lookup ID by Name, Get Budget Files,
-  Load Budget, Export Budget. The export arrives as n8n binary data named
-  `budget.zip`.
+  Load Budget, Export Budget. The export arrives as n8n binary data, named from
+  the response's `Content-Disposition` and falling back to `budget.zip`. Load
+  Budget takes a budget ID from Get Budget Files; it and the export need an admin
+  token.
 - **Bank Sync** — Run, to pull transactions from an account's bank connection.
 - **Budget: Batch Update** — up to 500 amount and carryover changes in one call.
 - **Payee: Get Common** — the payees used most often.

@@ -8,11 +8,14 @@ export const buildNoteRequest = (operation: string, get: ParamGetter): BuiltRequ
 	switch (operation) {
 		case 'get':
 			return request('GET', `/v2/notes/${get<string>('noteId')}`);
-		case 'update':
-			// An empty string is a real value here: it clears the note.
+		case 'update': {
+			// The API clears a note with null; an n8n string parameter cannot hold
+			// null, so an empty field is what asks for the note to be cleared.
+			const note = get<string>('note', '');
 			return request('PUT', `/v2/notes/${get<string>('noteId')}`, {
-				body: { note: get<string>('note', '') },
+				body: { note: note === '' ? null : note },
 			});
+		}
 		default:
 			throw unsupportedOperation(RESOURCE, operation);
 	}

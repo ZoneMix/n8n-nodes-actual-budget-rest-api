@@ -1,6 +1,6 @@
 import type { BuiltRequest, ParamGetter } from './types';
 import { unsupportedOperation } from './types';
-import { omitBlank, request } from './helpers';
+import { request } from './helpers';
 
 const RESOURCE = 'system';
 
@@ -15,8 +15,9 @@ export const buildSystemRequest = (operation: string, get: ParamGetter): BuiltRe
 		case 'budgetFiles':
 			return request('GET', '/v2/budget/files');
 		case 'loadBudget':
+			// budgetId is an id from GET /v2/budget/files, not the sync id.
 			return request('POST', '/v2/budget/load', {
-				body: omitBlank({ syncId: get<string>('syncId', '') }),
+				body: { budgetId: get<string>('budgetId') },
 			});
 		case 'exportBudget':
 			return request('POST', '/v2/budget/export', { binary: BUDGET_EXPORT_BINARY });

@@ -108,6 +108,23 @@ export const isAuthenticationFailure = (details: ErrorDetails, authType: AuthTyp
 	return AUTH_KEYWORDS.some((keyword) => message.includes(keyword));
 };
 
+const FILENAME_PATTERN = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i;
+
+/**
+ * Name for a downloaded file, taken from the response's `Content-Disposition`.
+ * Only the base name is kept: the header comes from the server and ends up as a
+ * filename, so a value carrying path separators must not steer where it lands.
+ */
+export const filenameFromContentDisposition = (
+	header: string | undefined,
+	fallback: string,
+): string => {
+	const match = header ? FILENAME_PATTERN.exec(header) : null;
+	const value = match?.[1]?.trim() ?? '';
+	const baseName = value.split(/[/\\]/).pop() ?? '';
+	return baseName || fallback;
+};
+
 export interface ApiSession {
 	baseUrl: string;
 	accessToken?: string;
@@ -137,7 +154,11 @@ const toRequestOptions = (
 	...(built.body ? { body: built.body } : {}),
 	...(built.qs ? { qs: built.qs } : {}),
 	...(authType === 'jwt' ? { headers: { Authorization: `Bearer ${session.accessToken}` } } : {}),
-	...(built.binary ? { encoding: 'arraybuffer' as const, json: false } : { json: true }),
+	// A binary endpoint streams raw bytes and names the file in a header, so the
+	// whole response is needed rather than just a parsed body.
+	...(built.binary
+		? { encoding: 'arraybuffer' as const, json: false, returnFullResponse: true }
+		: { json: true }),
 });
 
 /**
