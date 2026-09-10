@@ -73,11 +73,11 @@ describe('note request builder', () => {
 		});
 	});
 
-	it('sends an empty note to clear it', () => {
+	it('turns an empty note into the null the API clears with', () => {
 		assert.deepEqual(buildNoteRequest('update', params({ noteId: 'a1', note: '' })), {
 			method: 'PUT',
 			endpoint: '/v2/notes/a1',
-			body: { note: '' },
+			body: { note: null },
 		});
 	});
 

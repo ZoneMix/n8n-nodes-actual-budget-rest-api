@@ -155,8 +155,9 @@ behaviour.
 | Get | `GET /v2/notes/{id}` |
 | Update | `PUT /v2/notes/{id}` |
 
-The ID is the account, category, payee or schedule the note belongs to. An empty
-note clears it.
+The ID is the account, category, payee or schedule the note belongs to. Leaving
+the note empty sends `null`, which is how the API clears one. Reading the note of
+an entity that has none returns `null` rather than a 404.
 
 ### Preference
 
@@ -186,7 +187,11 @@ response carries `data` and `truncated`; `result` is a deprecated alias.
 | Export Budget | `POST /v2/budget/export` |
 
 Export Budget returns the budget as n8n binary data on the `data` property, named
-`budget.zip`. Lookup types are `accounts`, `categories`, `payees` and `schedules`.
+from the response's `Content-Disposition` (`actual-budget-YYYY-MM-DD.zip`), falling
+back to `budget.zip`. Load Budget takes an `id` from Get Budget Files, not a sync
+ID; both it and Export Budget require an admin token, and Load Budget swaps the
+open budget for the whole API process. Lookup types are `accounts`, `categories`,
+`payees` and `schedules`, and an unknown name is a 404.
 
 ### Health
 

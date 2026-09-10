@@ -5,6 +5,7 @@ import {
 	type ICredentialDataDecryptedObject,
 	type IDataObject,
 	type IExecuteFunctions,
+	type IN8nHttpFullResponse,
 	type INode,
 	type INodeExecutionData,
 	type INodeType,
@@ -34,6 +35,7 @@ import {
 	apiRequest,
 	buildCleanError,
 	extractErrorDetails,
+	filenameFromContentDisposition,
 	isAuthenticationFailure,
 	resolveOAuth2BaseUrl,
 	credentialName,
@@ -60,9 +62,18 @@ const toExecutionData = async (
 		return { json: response as IDataObject, pairedItem: { item: itemIndex } };
 	}
 
-	const data = await context.helpers.prepareBinaryData(
-		Buffer.from(response as ArrayBuffer),
+	// A binary request asks for the full response, so the server's own filename
+	// is available; `budget.zip` is only the fallback.
+	const full = response as IN8nHttpFullResponse;
+	const disposition = full.headers?.['content-disposition'] ?? full.headers?.['Content-Disposition'];
+	const fileName = filenameFromContentDisposition(
+		typeof disposition === 'string' ? disposition : undefined,
 		built.binary.fileName,
+	);
+
+	const data = await context.helpers.prepareBinaryData(
+		Buffer.from(full.body as ArrayBuffer),
+		fileName,
 		built.binary.mimeType,
 	);
 	return { json: {}, binary: { data }, pairedItem: { item: itemIndex } };

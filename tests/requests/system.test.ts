@@ -43,18 +43,18 @@ describe('system request builder', () => {
 		});
 	});
 
-	it('loads the configured budget file', () => {
-		assert.deepEqual(buildSystemRequest('loadBudget', params({ syncId: '' })), {
+	it('loads a budget file by its budget ID', () => {
+		const get = params({ budgetId: 'c3d4e5f6-9999-40a1-b2c3-d4e5f6708192' });
+		assert.deepEqual(buildSystemRequest('loadBudget', get), {
 			method: 'POST',
 			endpoint: '/v2/budget/load',
+			body: { budgetId: 'c3d4e5f6-9999-40a1-b2c3-d4e5f6708192' },
 		});
 	});
 
-	it('loads a specific budget file', () => {
-		assert.deepEqual(buildSystemRequest('loadBudget', params({ syncId: 'sync-1' })), {
-			method: 'POST',
-			endpoint: '/v2/budget/load',
-			body: { syncId: 'sync-1' },
+	it('requires a budget ID to load', () => {
+		assert.throws(() => buildSystemRequest('loadBudget', params({})), {
+			message: 'Missing node parameter: budgetId',
 		});
 	});
 

@@ -3,6 +3,7 @@ import {
 	buildCleanError,
 	buildUrl,
 	extractErrorDetails,
+	filenameFromContentDisposition,
 	isAuthenticationFailure,
 	normalizeBaseUrl,
 	resolveOAuth2BaseUrl,
@@ -19,6 +20,42 @@ describe('base URL handling', () => {
 	it('joins a base URL and an endpoint with exactly one slash', () => {
 		assert.equal(buildUrl('https://api.example.com/', '/v2/accounts'), 'https://api.example.com/v2/accounts');
 		assert.equal(buildUrl('https://api.example.com', 'v2/accounts'), 'https://api.example.com/v2/accounts');
+	});
+});
+
+describe('download filenames', () => {
+	it('takes the name the server sent', () => {
+		assert.equal(
+			filenameFromContentDisposition(
+				'attachment; filename="actual-budget-2026-09-10.zip"',
+				'budget.zip',
+			),
+			'actual-budget-2026-09-10.zip',
+		);
+	});
+
+	it('accepts an unquoted filename', () => {
+		assert.equal(
+			filenameFromContentDisposition('attachment; filename=ledger.zip', 'budget.zip'),
+			'ledger.zip',
+		);
+	});
+
+	it('falls back when the header is missing or unparseable', () => {
+		assert.equal(filenameFromContentDisposition(undefined, 'budget.zip'), 'budget.zip');
+		assert.equal(filenameFromContentDisposition('attachment', 'budget.zip'), 'budget.zip');
+		assert.equal(filenameFromContentDisposition('attachment; filename=""', 'budget.zip'), 'budget.zip');
+	});
+
+	it('keeps only the base name, so a header cannot steer a path', () => {
+		assert.equal(
+			filenameFromContentDisposition('attachment; filename="../../etc/passwd.zip"', 'budget.zip'),
+			'passwd.zip',
+		);
+		assert.equal(
+			filenameFromContentDisposition('attachment; filename="C:\\\\temp\\\\out.zip"', 'budget.zip'),
+			'out.zip',
+		);
 	});
 });
 
