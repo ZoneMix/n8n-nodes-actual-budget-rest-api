@@ -34,10 +34,14 @@ up from 36 across 9. Requires the API wrapper at v2.3.0 or later.
 - Category and Category Group Get Many take a `hidden` filter, and Delete takes
   `transferCategoryId`.
 - Query takes `orderBy`, `groupBy`, `calculate`, `limit`, `offset` and
-  `options.splits`. Responses now carry `data` and `truncated`; `result` is a
-  deprecated alias the API still returns.
-- Test suite: 157 assertions over Node's own test runner, covering the request
-  every operation builds plus the shared helpers.
+  `options.splits`. Calculate accepts either an aggregate object or a bare field
+  name. Responses now carry `data` and `truncated`; `result` is a deprecated
+  alias the API still returns.
+- Schedule Create and Update take an amount range for the Between operator and a
+  recurrence object in place of a single date, each as a JSON field that wins
+  over its plain counterpart.
+- Test suite over Node's own test runner, asserting the request every operation
+  builds plus the shared helpers.
 
 ### Changed
 
@@ -56,6 +60,9 @@ up from 36 across 9. Requires the API wrapper at v2.3.0 or later.
 
 - Account Get Balance now sends the Cutoff Date, and Close Account now sends the
   transfer account and category. Both were collected in the UI and dropped.
+- A 400 is only reported as an expired token when the response body says so. Any
+  400 under OAuth2 used to be relabelled that way, which hid the validation error
+  that actually caused it.
 - Query Limit is sent at the top level of the query. It was nested under
   `options`, which the API rejects because that object is strict.
 - Close Account sends the transfer category as `transferCategoryId`, the name the

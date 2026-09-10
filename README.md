@@ -142,6 +142,13 @@ Actual's own rule engine and are rejected by the API if they are not.
 Reset Next Date is only sent when it is on; leaving it off keeps the engine's own
 behaviour.
 
+Two fields have a JSON alternative, because the API accepts a union that an n8n
+field cannot express. Amount Range replaces Amount for the Between operator, as
+`{"num1":-105000,"num2":-95000}`. Date Recurrence replaces the single date, as
+`{"start":"2026-02-01","frequency":"monthly"}` plus any of `interval`,
+`skipWeekend`, `weekendSolveMode`, `endMode`, `endOccurrences` and `endDate`.
+Whichever JSON field is set wins over its plain counterpart.
+
 ### Tag
 
 | Operation | Request |
@@ -177,6 +184,10 @@ an entity that has none returns `null` rather than a 404.
 ActualQL against a whitelist of read-only tables, with `filter`, `select` or
 `calculate`, `groupBy`, `orderBy`, `limit`, `offset` and `options.splits`. The
 response carries `data` and `truncated`; `result` is a deprecated alias.
+
+Calculate takes an aggregate object such as `{"$sum":"amount"}` or a bare field
+name such as `amount`. Setting it replaces the field selection, because the API
+rejects the two together.
 
 ### System
 
