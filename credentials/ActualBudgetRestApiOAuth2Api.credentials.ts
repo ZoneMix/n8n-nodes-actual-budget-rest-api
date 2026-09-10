@@ -53,7 +53,8 @@ export class ActualBudgetRestApiOAuth2Api implements ICredentialType {
 			name: 'scope',
 			type: 'string',
 			default: 'api',
-			description: 'Scope to request from the Actual Budget API',
+			description:
+				'Scope to request from the Actual Budget API. Tokens carry read, write or admin; the legacy api scope is read and write together and stays the default. Space-separate several, e.g. "read write".',
 		},
 		{
 			displayName: 'Authentication',
