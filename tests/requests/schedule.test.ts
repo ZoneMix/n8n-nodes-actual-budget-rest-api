@@ -48,6 +48,81 @@ describe('schedule request builder', () => {
 		});
 	});
 
+	it('sends an amount range when the operator is between', () => {
+		const get = params({
+			date: '2026-02-01',
+			additionalFields: { amountOp: 'isbetween', amountRange: '{"num1":-105000,"num2":-95000}' },
+		});
+		assert.deepEqual(buildScheduleRequest('create', get), {
+			method: 'POST',
+			endpoint: '/v2/schedules',
+			body: {
+				schedule: {
+					date: '2026-02-01',
+					amountOp: 'isbetween',
+					amount: { num1: -105000, num2: -95000 },
+				},
+			},
+		});
+	});
+
+	it('sends a recurrence in place of a single date', () => {
+		const get = params({
+			date: '',
+			additionalFields: {
+				name: 'Rent',
+				dateRecurrence: '{"start":"2026-02-01","frequency":"monthly","interval":1}',
+			},
+		});
+		assert.deepEqual(buildScheduleRequest('create', get), {
+			method: 'POST',
+			endpoint: '/v2/schedules',
+			body: {
+				schedule: {
+					name: 'Rent',
+					date: { start: '2026-02-01', frequency: 'monthly', interval: 1 },
+				},
+			},
+		});
+	});
+
+	it('needs either a date or a recurrence', () => {
+		assert.throws(() => buildScheduleRequest('create', params({ date: '', additionalFields: {} })), {
+			message: 'A schedule needs either Date or Date Recurrence',
+		});
+	});
+
+	it('rejects an amount range that is not an object', () => {
+		const get = params({ date: '2026-02-01', additionalFields: { amountRange: '[1,2]' } });
+		assert.throws(() => buildScheduleRequest('create', get), {
+			message: 'Amount Range must be a JSON object',
+		});
+	});
+
+	it('applies the range and the recurrence to an update too', () => {
+		const get = params({
+			scheduleId: 's1',
+			updateFields: {
+				amountOp: 'isbetween',
+				amountRange: '{"num1":-105000,"num2":-95000}',
+				dateRecurrence: '{"start":"2026-03-01","frequency":"monthly"}',
+			},
+			resetNextDate: true,
+		});
+		assert.deepEqual(buildScheduleRequest('update', get), {
+			method: 'PUT',
+			endpoint: '/v2/schedules/s1',
+			body: {
+				fields: {
+					amountOp: 'isbetween',
+					amount: { num1: -105000, num2: -95000 },
+					date: { start: '2026-03-01', frequency: 'monthly' },
+				},
+			},
+			qs: { resetNextDate: true },
+		});
+	});
+
 	it('updates a schedule without resetting its next date', () => {
 		const get = params({
 			scheduleId: 's1',

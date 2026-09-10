@@ -2,7 +2,6 @@ import type { IDataObject } from 'n8n-workflow';
 import type { BuiltRequest, ParamGetter } from './types';
 import { RequestBuildError, unsupportedOperation } from './types';
 import {
-	parseJsonObject,
 	parseJsonObjectOrArray,
 	parseJsonValue,
 	request,
@@ -25,6 +24,25 @@ const filterClause = (get: ParamGetter): IDataObject => {
 	const filter = parseJsonObjectOrArray(raw, 'Filter');
 	const isEmpty = Array.isArray(filter) ? filter.length === 0 : Object.keys(filter).length === 0;
 	return isEmpty ? {} : { filter };
+};
+
+/**
+ * The API takes an aggregate object such as `{"$sum":"amount"}` or a bare field
+ * name. Anything starting with a brace or a bracket must be valid JSON; anything
+ * else is taken as the field name it looks like.
+ */
+const parseCalculate = (raw: string): IDataObject | string => {
+	const trimmed = raw.trim();
+	if (!/^[{["]/.test(trimmed)) {
+		return trimmed;
+	}
+
+	const value = parseJsonValue(trimmed, 'Calculate');
+	if (typeof value === 'string') return value;
+	if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+		return value as IDataObject;
+	}
+	throw new RequestBuildError('Calculate must be a JSON object or a field name');
 };
 
 /** The API takes a single field name or a list of names and direction objects. */
@@ -51,9 +69,7 @@ export const buildQueryRequest = (operation: string, get: ParamGetter): BuiltReq
 
 	const options = get<IDataObject>('options', {});
 	// The API rejects select and calculate together, so calculate wins.
-	const calculate = options.calculate
-		? parseJsonObject(options.calculate as string, 'Calculate')
-		: undefined;
+	const calculate = options.calculate ? parseCalculate(options.calculate as string) : undefined;
 
 	return request('POST', '/v2/query', {
 		body: {

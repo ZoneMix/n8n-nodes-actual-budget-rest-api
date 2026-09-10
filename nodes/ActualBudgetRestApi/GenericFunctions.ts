@@ -85,27 +85,33 @@ export const buildCleanError = (details: ErrorDetails): JsonObject => {
 	};
 };
 
-const AUTH_KEYWORDS = [
-	'unauthorized',
-	'authentication',
-	'token',
-	'expired',
-	'unsupported content type',
-	'text/html',
-];
+/** Codes an auth failure carries: OAuth2's own, and this API's 401 code. */
+const AUTH_ERROR_CODES = ['invalid_grant', 'invalid_token', 'authentication_error'];
 
 /**
- * 401/403 are always auth failures. A 400 is one too when OAuth2 is in use
- * (n8n reports an expired OAuth2 token that way) or when the message reads like
- * an auth problem rather than a validation problem.
+ * A 400 whose body is HTML is a login page, not a validation failure: this API
+ * answers a bad request with JSON.
  */
-export const isAuthenticationFailure = (details: ErrorDetails, authType: AuthType): boolean => {
+const HTML_BODY_MARKERS = ['unsupported content type', 'text/html'];
+
+const asLowerString = (value: unknown): string =>
+	typeof value === 'string' ? value.toLowerCase() : '';
+
+/**
+ * 401 and 403 are always auth failures. A 400 is one only when the body says so
+ * — this API returns VALIDATION_ERROR at 400, and reporting that as an expired
+ * token would hide the field the caller actually got wrong.
+ */
+export const isAuthenticationFailure = (details: ErrorDetails): boolean => {
 	if (details.statusCode === 401 || details.statusCode === 403) return true;
 	if (details.statusCode !== 400) return false;
-	if (authType === 'oAuth2') return true;
 
-	const message = details.message.toLowerCase();
-	return AUTH_KEYWORDS.some((keyword) => message.includes(keyword));
+	const code = asLowerString(details.data?.code);
+	const error = asLowerString(details.data?.error);
+	if (AUTH_ERROR_CODES.includes(code) || AUTH_ERROR_CODES.includes(error)) return true;
+
+	const message = `${error} ${details.message}`.toLowerCase();
+	return message.includes('token') || HTML_BODY_MARKERS.some((marker) => message.includes(marker));
 };
 
 const FILENAME_PATTERN = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i;
