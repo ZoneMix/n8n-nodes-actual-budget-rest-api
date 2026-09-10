@@ -49,6 +49,24 @@ supporting modules:
 | `auth.ts` | the JWT login, kept out of any function that reads credentials |
 | `tokenCache.ts` | the access-token cache and its expiry arithmetic |
 
+### Known limitation: a transaction row cannot blank a field
+
+`omitBlank()` drops empty strings from each row of the Create and Import
+collections, because n8n submits every declared field of a fixed collection
+whether or not the user filled it in, and an empty Date would otherwise be
+rejected with a 400. The cost is that a row cannot deliberately blank a value the
+API already holds — leaving Notes empty on an Import row that matches an existing
+transaction by `imported_id` leaves the old notes in place rather than clearing
+them.
+
+Transaction Update is not affected: its fields are a collection the user adds to
+explicitly, so they are sent exactly as typed and an empty string does clear the
+value. Note Update is the one place where an empty field is translated, to the
+`null` the notes endpoint clears with.
+
+Fixing this for rows means a per-field "clear this" marker or a nullable field
+type, neither of which n8n offers today.
+
 Two details worth knowing before changing them:
 
 - **The JWT flow is manual on purpose.** The API issues a token from a username
