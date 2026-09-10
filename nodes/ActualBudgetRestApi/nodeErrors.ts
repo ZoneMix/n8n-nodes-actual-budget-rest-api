@@ -61,7 +61,7 @@ export const nodeErrorFrom = (
 			itemIndex,
 		});
 	}
-	if (isAuthenticationFailure(details, authType)) {
+	if (isAuthenticationFailure(details)) {
 		const label = authType === 'jwt' ? 'JWT' : 'OAuth2';
 		return new NodeApiError(node, clean, {
 			message: `${label} token has expired or is invalid`,

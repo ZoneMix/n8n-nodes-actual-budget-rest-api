@@ -101,6 +101,37 @@ describe('query request builder', () => {
 		});
 	});
 
+	it('accepts a bare field name for calculate', () => {
+		const get = base({ options: { calculate: 'amount' } });
+		assert.deepEqual(buildQueryRequest('execute', get), {
+			method: 'POST',
+			endpoint: '/v2/query',
+			body: { query: { table: 'transactions', calculate: 'amount' } },
+		});
+	});
+
+	it('accepts a quoted field name for calculate', () => {
+		const get = base({ options: { calculate: '"amount"' } });
+		assert.deepEqual(buildQueryRequest('execute', get), {
+			method: 'POST',
+			endpoint: '/v2/query',
+			body: { query: { table: 'transactions', calculate: 'amount' } },
+		});
+	});
+
+	it('reports a malformed calculate object', () => {
+		assert.throws(
+			() => buildQueryRequest('execute', base({ options: { calculate: '{oops' } })),
+			/^RequestBuildError: Invalid Calculate JSON/,
+		);
+	});
+
+	it('rejects a calculate that is neither an object nor a field name', () => {
+		assert.throws(() => buildQueryRequest('execute', base({ options: { calculate: '["amount"]' } })), {
+			message: 'Calculate must be a JSON object or a field name',
+		});
+	});
+
 	it('nests splits under options', () => {
 		const get = base({ options: { splits: 'grouped' } });
 		assert.deepEqual(buildQueryRequest('execute', get), {

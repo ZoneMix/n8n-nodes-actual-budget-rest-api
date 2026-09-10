@@ -134,26 +134,56 @@ describe('error extraction', () => {
 });
 
 describe('authentication failure detection', () => {
-	it('treats 401 and 403 as authentication failures for both auth types', () => {
-		assert.equal(isAuthenticationFailure({ message: '', statusCode: 401 }, 'jwt'), true);
-		assert.equal(isAuthenticationFailure({ message: '', statusCode: 403 }, 'oAuth2'), true);
+	it('always treats 401 and 403 as authentication failures', () => {
+		assert.equal(isAuthenticationFailure({ message: '', statusCode: 401 }), true);
+		assert.equal(isAuthenticationFailure({ message: '', statusCode: 403 }), true);
 	});
 
-	it('treats any 400 from OAuth2 as an expired token', () => {
-		assert.equal(isAuthenticationFailure({ message: 'nope', statusCode: 400 }, 'oAuth2'), true);
+	it('leaves a 400 validation error alone', () => {
+		const details = {
+			message: 'Validation failed',
+			statusCode: 400,
+			data: { error: 'Validation failed', code: 'VALIDATION_ERROR' },
+		};
+		assert.equal(isAuthenticationFailure(details), false);
 	});
 
-	it('treats a 400 from JWT as an authentication failure only with auth keywords', () => {
-		assert.equal(isAuthenticationFailure({ message: 'Bad month', statusCode: 400 }, 'jwt'), false);
-		assert.equal(isAuthenticationFailure({ message: 'Token expired', statusCode: 400 }, 'jwt'), true);
+	it('leaves a bare 400 alone whichever credential is in use', () => {
+		assert.equal(isAuthenticationFailure({ message: 'Month must be YYYY-MM', statusCode: 400 }), false);
+	});
+
+	it('reads a 400 as an expired token when the body says so', () => {
 		assert.equal(
-			isAuthenticationFailure({ message: 'Unsupported content type text/html', statusCode: 400 }, 'jwt'),
+			isAuthenticationFailure({ message: 'Bad Request', statusCode: 400, data: { code: 'invalid_grant' } }),
+			true,
+		);
+		assert.equal(
+			isAuthenticationFailure({ message: 'Bad Request', statusCode: 400, data: { error: 'invalid_token' } }),
+			true,
+		);
+		assert.equal(
+			isAuthenticationFailure({
+				message: 'Bad Request',
+				statusCode: 400,
+				data: { code: 'AUTHENTICATION_ERROR' },
+			}),
+			true,
+		);
+	});
+
+	it('reads a 400 whose message mentions a token as an expired token', () => {
+		assert.equal(isAuthenticationFailure({ message: 'Token expired', statusCode: 400 }), true);
+	});
+
+	it('reads an HTML body on a 400 as an expired session', () => {
+		assert.equal(
+			isAuthenticationFailure({ message: 'Unsupported content type text/html', statusCode: 400 }),
 			true,
 		);
 	});
 
 	it('does not treat other status codes as authentication failures', () => {
-		assert.equal(isAuthenticationFailure({ message: 'token', statusCode: 500 }, 'jwt'), false);
-		assert.equal(isAuthenticationFailure({ message: 'token' }, 'jwt'), false);
+		assert.equal(isAuthenticationFailure({ message: 'token', statusCode: 500 }), false);
+		assert.equal(isAuthenticationFailure({ message: 'token' }), false);
 	});
 });
