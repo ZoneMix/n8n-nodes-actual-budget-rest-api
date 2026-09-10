@@ -3,12 +3,17 @@
   "version": "1.1.0",
   "description": "n8n community node for the Actual Budget REST API wrapper (accounts, transactions, budgets, categories, payees, rules, schedules, tags, notes)",
   "license": "MIT",
-  "homepage": "https://github.com/zonemix/n8n-nodes-actual-budget-rest-api",
-  "keywords": ["n8n-community-node-package"],
-  "author": { "name": "ZoneMix", "email": "zonemix@zonemix.tech" },
+  "homepage": "https://github.com/ZoneMix/n8n-nodes-actual-budget-rest-api#readme",
+  "keywords": [
+    "n8n-community-node-package"
+  ],
+  "author": {
+    "name": "ZoneMix",
+    "email": "zonemix@zonemix.tech"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/zonemix/n8n-nodes-actual-budget-rest-api"
+    "url": "git+https://github.com/ZoneMix/n8n-nodes-actual-budget-rest-api.git"
   },
   "publishConfig": {
     "access": "public"
@@ -23,7 +28,9 @@
     "release": "n8n-node release",
     "prepublishOnly": "n8n-node prerelease"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "n8n": {
     "n8nNodesApiVersion": 1,
     "strict": true,
@@ -31,7 +38,9 @@
       "dist/credentials/ActualBudgetRestApiOAuth2Api.credentials.js",
       "dist/credentials/ActualBudgetRestApiJwtApi.credentials.js"
     ],
-    "nodes": ["dist/nodes/ActualBudgetRestApi/ActualBudgetRestApi.node.js"]
+    "nodes": [
+      "dist/nodes/ActualBudgetRestApi/ActualBudgetRestApi.node.js"
+    ]
   },
   "devDependencies": {
     "@n8n/node-cli": "0.47.2",
@@ -42,5 +51,7 @@
     "tsx": "4.23.13",
     "typescript": "5.9.3"
   },
-  "peerDependencies": { "n8n-workflow": "*" }
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
 }
