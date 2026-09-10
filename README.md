@@ -17,168 +17,267 @@ This is an n8n community node. It lets you use Actual Budget in your n8n workflo
 
 Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
 
-For local development:
-
-```bash
-cd n8n-nodes-actual-budget-rest-api
-npm install
-npm run build
-npm link
-```
-
-Then in your n8n installation directory:
-
-```bash
-npm link n8n-nodes-actual-budget-rest-api
-```
+For local development, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Operations
 
-This node supports the following resources and operations (36 operations total):
+65 operations across 17 resources.
 
 ### Account
-- **Get Many** - Retrieve all accounts
-- **Create** - Create a new account
-- **Update** - Update an account by ID
-- **Delete** - Delete an account by ID
-- **Close** - Close an account (with optional transfer)
-- **Reopen** - Reopen a closed account
-- **Get Balance** - Get account balance (optionally as of a specific date)
+
+| Operation | Request |
+|---|---|
+| Get Many | `GET /v2/accounts` |
+| Create | `POST /v2/accounts` |
+| Update | `PUT /v2/accounts/{id}` |
+| Delete | `DELETE /v2/accounts/{id}` |
+| Close | `POST /v2/accounts/{id}/close` |
+| Reopen | `POST /v2/accounts/{id}/reopen` |
+| Get Balance | `GET /v2/accounts/{id}/balance?cutoff=` |
+
+Create and Update take `offbudget`, `closed` and `account_group_id`. Close takes an
+optional transfer account and category for the remaining balance.
+
+### Account Group
+
+| Operation | Request |
+|---|---|
+| Get Many | `GET /v2/account-groups` |
+| Create | `POST /v2/account-groups` |
+| Update | `PUT /v2/account-groups/{id}` |
+| Delete | `DELETE /v2/account-groups/{id}` |
+
+### Bank Sync
+
+| Operation | Request |
+|---|---|
+| Run | `POST /v2/accounts/{id}/bank-sync` |
 
 ### Transaction
-- **Get Many** - Get transactions for an account (with optional date filters)
-- **Create** - Add new transactions to an account
-- **Update** - Update a transaction by ID
-- **Delete** - Delete a transaction by ID
-- **Import** - Import transactions with reconciliation using `imported_id`
+
+| Operation | Request |
+|---|---|
+| Get Many | `GET /v2/accounts/{id}/transactions?start=&end=` |
+| Create | `POST /v2/accounts/{id}/transactions` |
+| Import | `POST /v2/accounts/{id}/transactions/import` |
+| Update | `PUT /v2/transactions/{id}` |
+| Delete | `DELETE /v2/transactions/{id}` |
+
+Each transaction row takes amount, date, payee, category, notes, imported ID and
+cleared directly, and `imported_payee`, `payee_name`, `reconciled`, `transfer_id`,
+`starting_balance_flag` and `subtransactions` under Additional Fields. Import adds
+the `opts` object: default cleared, dry run, reimport deleted and payee name
+normalisation.
 
 ### Category
-- **Get Many** - Retrieve all categories
-- **Create** - Create a new category
-- **Update** - Update a category by ID
-- **Delete** - Delete a category by ID
+
+| Operation | Request |
+|---|---|
+| Get Many | `GET /v2/categories?hidden=` |
+| Create | `POST /v2/categories` |
+| Update | `PUT /v2/categories/{id}` |
+| Delete | `DELETE /v2/categories/{id}?transferCategoryId=` |
 
 ### Category Group
-- **Get Many** - Retrieve all category groups
-- **Create** - Create a new category group
-- **Update** - Update a category group by ID
-- **Delete** - Delete a category group by ID
+
+| Operation | Request |
+|---|---|
+| Get Many | `GET /v2/category-groups?hidden=` |
+| Create | `POST /v2/category-groups` |
+| Update | `PUT /v2/category-groups/{id}` |
+| Delete | `DELETE /v2/category-groups/{id}?transferCategoryId=` |
 
 ### Payee
-- **Get Many** - Retrieve all payees
-- **Create** - Create a new payee
-- **Update** - Update a payee by ID
-- **Delete** - Delete a payee by ID
-- **Merge** - Merge multiple payees into one
+
+| Operation | Request |
+|---|---|
+| Get Many | `GET /v2/payees` |
+| Get Common | `GET /v2/payees/common` |
+| Create | `POST /v2/payees` |
+| Update | `PUT /v2/payees/{id}` |
+| Delete | `DELETE /v2/payees/{id}` |
+| Merge | `POST /v2/payees/merge` |
 
 ### Budget
-- **Get Months** - Get list of available budget months
-- **Get Month** - Get budget data for a specific month (YYYY-MM)
-- **Set Category Budget** - Set budgeted amount for a category in a month
-- **Set Category Carryover** - Enable/disable carryover for a category
-- **Hold Budget** - Hold amount from next month
-- **Reset Hold** - Reset held amount
 
-### Health
-- **Check** - Check API health status (production shows limited info, development shows full details)
+| Operation | Request |
+|---|---|
+| Get Months | `GET /v2/budgets/months` |
+| Get Month | `GET /v2/budgets/{month}` |
+| Set Category Budget | `POST /v2/budgets/{month}/categories/{categoryId}/budget` |
+| Set Category Carryover | `POST /v2/budgets/{month}/categories/{categoryId}/carryover` |
+| Hold Budget | `POST /v2/budgets/{month}/hold` |
+| Reset Hold | `POST /v2/budgets/{month}/reset-hold` |
+| Batch Update | `POST /v2/budgets/batch` |
 
-### Metrics
-- **Get Full** - Get comprehensive metrics snapshot (all metrics)
-- **Get Summary** - Get lightweight summary metrics only
-- **Reset** - Reset all metrics counters to zero
+Batch Update takes a JSON array of up to 500 entries, each
+`{"type":"setAmount","month":"2026-01","categoryId":"…","amount":1000}` or
+`{"type":"setCarryover","month":"2026-01","categoryId":"…","flag":true}`.
+
+### Rule
+
+| Operation | Request |
+|---|---|
+| Get Many | `GET /v2/rules` |
+| Get For Payee | `GET /v2/rules/payees/{payeeId}` |
+| Create | `POST /v2/rules` |
+| Update | `PUT /v2/rules/{id}` |
+| Delete | `DELETE /v2/rules/{id}` |
+
+Conditions and actions are JSON arrays. The valid fields and operators come from
+Actual's own rule engine and are rejected by the API if they are not.
+
+### Schedule
+
+| Operation | Request |
+|---|---|
+| Get Many | `GET /v2/schedules` |
+| Create | `POST /v2/schedules` |
+| Update | `PUT /v2/schedules/{id}?resetNextDate=` |
+| Delete | `DELETE /v2/schedules/{id}` |
+
+Reset Next Date is only sent when it is on; leaving it off keeps the engine's own
+behaviour.
+
+### Tag
+
+| Operation | Request |
+|---|---|
+| Get Many | `GET /v2/tags` |
+| Create | `POST /v2/tags` |
+| Update | `PUT /v2/tags/{id}` |
+| Delete | `DELETE /v2/tags/{id}` |
+
+### Note
+
+| Operation | Request |
+|---|---|
+| Get | `GET /v2/notes/{id}` |
+| Update | `PUT /v2/notes/{id}` |
+
+The ID is the account, category, payee or schedule the note belongs to. An empty
+note clears it.
+
+### Preference
+
+| Operation | Request |
+|---|---|
+| Get | `GET /v2/preferences` |
 
 ### Query
-- **Execute** - Execute ActualQL queries against Actual Budget data (secure, whitelisted tables only)
+
+| Operation | Request |
+|---|---|
+| Execute | `POST /v2/query` |
+
+ActualQL against a whitelist of read-only tables, with `filter`, `select` or
+`calculate`, `groupBy`, `orderBy`, `limit`, `offset` and `options.splits`. The
+response carries `data` and `truncated`; `result` is a deprecated alias.
+
+### System
+
+| Operation | Request |
+|---|---|
+| Get Server Version | `GET /v2/server/version` |
+| Sync Now | `POST /v2/sync` |
+| Lookup ID by Name | `GET /v2/lookup/{type}/{name}` |
+| Get Budget Files | `GET /v2/budget/files` |
+| Load Budget | `POST /v2/budget/load` |
+| Export Budget | `POST /v2/budget/export` |
+
+Export Budget returns the budget as n8n binary data on the `data` property, named
+`budget.zip`. Lookup types are `accounts`, `categories`, `payees` and `schedules`.
+
+### Health
+
+| Operation | Request |
+|---|---|
+| Check | `GET /v2/health` |
+
+### Metric
+
+| Operation | Request |
+|---|---|
+| Get Full | `GET /v2/metrics` |
+| Get Summary | `GET /v2/metrics/summary` |
+| Reset | `POST /v2/metrics/reset` |
 
 ## Credentials
 
-This node supports **JWT authentication** via username and password.
+### JWT (recommended)
 
-### Prerequisites
-1. Set up the [Actual Budget REST API wrapper](https://github.com/zonemix/actual-budget-rest-api)
-2. Ensure the API is running and accessible
-3. Obtain your admin username and password (configured via `ADMIN_USER` and `ADMIN_PASSWORD` environment variables)
+1. Set up the [Actual Budget REST API wrapper](https://github.com/zonemix/actual-budget-rest-api) and make sure it is reachable from n8n.
+2. In n8n, create credentials of type **Actual Budget REST API JWT**.
+3. Fill in:
+   - **Base URL**: your API endpoint without `/v2`, for example `http://localhost:3000` or `https://actual-api.example.com`
+   - **Username** and **Password**: the API's `ADMIN_USER` and `ADMIN_PASSWORD`
+4. Use the credential test, which calls `/v2/health`.
 
-### Setting up credentials
-1. In n8n, create new credentials of type **Actual Budget REST API JWT**
-2. Enter your:
-   - **Base URL**: Your API endpoint
-     - Development: `http://localhost:3000`
-     - Production: `https://actual-api.yourdomain.com`
-   - **Username**: Admin username (from API's `ADMIN_USER` env var)
-   - **Password**: Admin password (from API's `ADMIN_PASSWORD` env var)
-3. Test the credentials using the built-in test function
+The node exchanges the username and password for an access token on first use and
+caches it until shortly before it expires, so repeated executions do not hit the
+API's login rate limit. A 401 clears the cached token so the next execution logs
+in again.
 
-The credential will automatically exchange your username/password for a JWT access token when making requests.
+### OAuth2
 
-### OAuth2 Support (Optional)
-For production deployments, OAuth2 is also supported via the `actualBudgetRestApiOAuth2Api` credential. Configure the OAuth2 client in your API wrapper first (see [API documentation](https://github.com/zonemix/actual-budget-rest-api#connecting-n8n)).
+For deployments that issue OAuth2 clients, use the **Actual Budget REST API OAuth2 API**
+credential and configure the client in the API wrapper first.
+
+Tokens carry a scope of `read`, `write` or `admin`. The legacy `api` scope means
+read and write together and remains the default, so existing credentials keep
+working. Set **Scope** to `read` for a workflow that only queries, and to `admin`
+for one that resets metrics. Several scopes are space-separated, e.g. `read write`.
 
 ## Compatibility
 
 - Minimum n8n version: **1.0.0**
-- Tested with n8n: **1.70+**
-- Compatible with Actual Budget REST API wrapper: **v1.0.0+**
-
-## Recent Updates
-
-### Error Handling
-The node now properly handles structured error responses from the API, including:
-- Error codes for programmatic handling
-- Request IDs for tracing
-- Additional error details (in development)
-
-### New Features
-- **Metrics Resource**: Monitor API performance and usage
-- **Query Resource**: Execute secure ActualQL queries with table whitelisting and validation
-- **Enhanced Health Checks**: Production-safe health endpoint with information disclosure prevention
-
-## Configuration
-
-### Development Setup
-Use `http://localhost:3000` as the Base URL when running the API wrapper locally.
-
-### Production Setup
-For production deployments:
-1. Deploy the Actual Budget REST API wrapper to your server
-2. Configure a domain/subdomain (e.g., `https://actual-api.yourdomain.com`)
-3. Set up HTTPS (required for production)
-4. In n8n credentials, set **Base URL** to your production URL
-5. Ensure your production URL is included in the API's `ALLOWED_ORIGINS` environment variable
+- Requires the Actual Budget REST API wrapper at **v2.3.0** or later. Earlier
+  wrappers do not serve the rule, schedule, tag, note, preference, account group,
+  system or bank sync endpoints, and reject the widened transaction and query
+  fields.
 
 ## Usage
 
-### Example: Create an Account
-1. Add an **Actual Budget REST API** node
-2. Select **Account** resource
-3. Select **Create** operation
-4. Fill in:
-   - Account Name: `"Checking"`
-   - Off Budget: `false`
-   - Initial Balance: `50000` (= $500.00)
-5. Execute
+### Amounts
 
-### Example: Import Transactions
-1. Use a **Code** node or **HTTP Request** to fetch bank transactions
-2. Add **Actual Budget REST API** node
-3. Select **Transaction** resource
-4. Select **Import** operation
-5. Provide Account ID and map transactions with `imported_id` for deduplication
-6. Execute
+Every amount in Actual Budget is an integer number of cents:
 
-### Working with Amounts
-All monetary amounts in Actual Budget are stored as **integers in cents**:
-- $100.00 = `10000`
-- -$45.99 = `-4599`
-- $1,234.56 = `123456`
+| Amount | Value |
+|---|---|
+| $100.00 | `10000` |
+| -$45.99 | `-4599` |
+| $1,234.56 | `123456` |
 
-### Date Formats
-Dates must be in **YYYY-MM-DD** format (e.g., `2025-12-17`).  
-Budget months use **YYYY-MM** format (e.g., `2025-12`).
+### Dates
+
+Transaction and schedule dates use `YYYY-MM-DD`. Budget months use `YYYY-MM`.
+
+### Example: import bank transactions
+
+1. Fetch the statement with an **HTTP Request** node and parse it in a **Code** node.
+2. Add this node, choose **Transaction → Import** and give it the Account ID.
+3. Map each row's `imported_id` so re-running the workflow deduplicates instead of
+   creating copies, and set **Dry Run** while you are still testing the mapping.
+
+### Example: categorise with a rule
+
+1. **Rule → Create**.
+2. Conditions: `[{"field":"imported_payee","op":"contains","value":"KROGER"}]`
+3. Actions: `[{"op":"set","field":"category","value":"<category id>"}]`
+4. Use **System → Lookup ID by Name** beforehand if you have the category name
+   rather than its ID.
+
+### Errors
+
+Failures surface as n8n node errors carrying the API's status code and its error
+body, including the `requestId` for tracing. Turning on **Continue On Fail** puts
+that same envelope in the item's JSON instead of stopping the workflow.
 
 ## Resources
 
 - [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
 - [Actual Budget](https://actualbudget.org/)
 - [Actual Budget REST API wrapper](https://github.com/zonemix/actual-budget-rest-api)
-- [Actual Budget REST API OpenAPI Documentation](https://github.com/zonemix/actual-budget-rest-api/blob/main/src/docs/openapi.yml)
+- [Actual Budget REST API OpenAPI documentation](https://github.com/zonemix/actual-budget-rest-api/blob/main/src/docs/openapi.yml)
+- [ActualQL query syntax](https://actualbudget.org/docs/api/actual-ql/)
+- [DEVELOPMENT.md](DEVELOPMENT.md) for the node's architecture and release flow
