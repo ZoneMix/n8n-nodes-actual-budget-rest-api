@@ -13,52 +13,28 @@ export const categoryOperations: INodeProperties[] = [
 		},
 		options: [
 			{
-				name: 'Get Many',
-				value: 'getAll',
-				action: 'Get many categories',
-				description: 'Retrieve many categories',
-				routing: {
-					request: {
-						method: 'GET',
-						url: '/v2/categories',
-					},
-				},
-			},
-			{
 				name: 'Create',
 				value: 'create',
 				action: 'Create a category',
 				description: 'Create a new category',
-				routing: {
-					request: {
-						method: 'POST',
-						url: '/v2/categories',
-					},
-				},
-			},
-			{
-				name: 'Update',
-				value: 'update',
-				action: 'Update a category',
-				description: 'Update a category by ID',
-				routing: {
-					request: {
-						method: 'PUT',
-						url: '=/v2/categories/{{$parameter.categoryId}}',
-					},
-				},
 			},
 			{
 				name: 'Delete',
 				value: 'delete',
 				action: 'Delete a category',
 				description: 'Delete a category by ID',
-				routing: {
-					request: {
-						method: 'DELETE',
-						url: '=/v2/categories/{{$parameter.categoryId}}',
-					},
-				},
+			},
+			{
+				name: 'Get Many',
+				value: 'getAll',
+				action: 'Get many categories',
+				description: 'Retrieve many categories',
+			},
+			{
+				name: 'Update',
+				value: 'update',
+				action: 'Update a category',
+				description: 'Update a category by ID',
 			},
 		],
 		default: 'getAll',
@@ -66,7 +42,6 @@ export const categoryOperations: INodeProperties[] = [
 ];
 
 export const categoryFields: INodeProperties[] = [
-	// Category ID
 	{
 		displayName: 'Category ID',
 		name: 'categoryId',
@@ -80,7 +55,28 @@ export const categoryFields: INodeProperties[] = [
 			},
 		},
 	},
-	// Create fields
+	{
+		displayName: 'Filters',
+		name: 'filters',
+		type: 'collection',
+		placeholder: 'Add Filter',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['category'],
+				operation: ['getAll'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Hidden',
+				name: 'hidden',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to return hidden categories instead of visible ones',
+			},
+		],
+	},
 	{
 		displayName: 'Category Name',
 		name: 'categoryName',
@@ -94,33 +90,43 @@ export const categoryFields: INodeProperties[] = [
 			},
 		},
 		description: 'The name of the category',
-		routing: {
-			send: {
-				type: 'body',
-				property: 'category.name',
-			},
-		},
 	},
 	{
 		displayName: 'Group ID',
 		name: 'groupId',
 		type: 'string',
 		default: '',
+		required: true,
 		displayOptions: {
 			show: {
 				resource: ['category'],
 				operation: ['create'],
 			},
 		},
-		description: 'The category group ID',
-		routing: {
-			send: {
-				type: 'body',
-				property: 'category.group_id',
+		description: 'The category group this category belongs to',
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['category'],
+				operation: ['create'],
 			},
 		},
+		options: [
+			{
+				displayName: 'Hidden',
+				name: 'hidden',
+				type: 'boolean',
+				default: false,
+				description: 'Whether the category is hidden',
+			},
+		],
 	},
-	// Update fields
 	{
 		displayName: 'Update Fields',
 		name: 'updateFields',
@@ -135,29 +141,39 @@ export const categoryFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Name',
-				name: 'name',
-				type: 'string',
-				default: '',
-				routing: {
-					send: {
-						type: 'body',
-						property: 'fields.name',
-					},
-				},
-			},
-			{
 				displayName: 'Group ID',
 				name: 'group_id',
 				type: 'string',
 				default: '',
-				routing: {
-					send: {
-						type: 'body',
-						property: 'fields.group_id',
-					},
-				},
+				description: 'Category group to move the category into',
+			},
+			{
+				displayName: 'Hidden',
+				name: 'hidden',
+				type: 'boolean',
+				default: false,
+				description: 'Whether the category is hidden',
+			},
+			{
+				displayName: 'Name',
+				name: 'name',
+				type: 'string',
+				default: '',
+				description: 'New name for the category',
 			},
 		],
+	},
+	{
+		displayName: 'Transfer Category ID',
+		name: 'transferCategoryId',
+		type: 'string',
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['category'],
+				operation: ['delete'],
+			},
+		},
+		description: 'Optional category to move the deleted category’s transactions to',
 	},
 ];

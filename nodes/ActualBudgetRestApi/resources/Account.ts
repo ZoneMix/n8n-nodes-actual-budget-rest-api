@@ -17,84 +17,42 @@ export const accountOperations: INodeProperties[] = [
 				value: 'close',
 				action: 'Close an account',
 				description: 'Close an account by ID',
-				routing: {
-					request: {
-						method: 'POST',
-						url: '=/v2/accounts/{{$parameter.accountId}}/close',
-					},
-				},
 			},
 			{
 				name: 'Create',
 				value: 'create',
 				action: 'Create an account',
 				description: 'Create a new account',
-				routing: {
-					request: {
-						method: 'POST',
-						url: '/v2/accounts',
-					},
-				},
 			},
 			{
 				name: 'Delete',
 				value: 'delete',
 				action: 'Delete an account',
 				description: 'Delete an account by ID',
-				routing: {
-					request: {
-						method: 'DELETE',
-						url: '=/v2/accounts/{{$parameter.accountId}}',
-					},
-				},
 			},
 			{
 				name: 'Get Balance',
 				value: 'getBalance',
 				action: 'Get account balance',
 				description: 'Get balance for an account',
-				routing: {
-					request: {
-						method: 'GET',
-						url: '=/v2/accounts/{{$parameter.accountId}}/balance',
-					},
-				},
 			},
 			{
 				name: 'Get Many',
 				value: 'getAll',
 				action: 'Get many accounts',
 				description: 'Retrieve many accounts',
-				routing: {
-					request: {
-						method: 'GET',
-						url: '/v2/accounts',
-					},
-				},
 			},
 			{
 				name: 'Reopen',
 				value: 'reopen',
 				action: 'Reopen an account',
 				description: 'Reopen a closed account',
-				routing: {
-					request: {
-						method: 'POST',
-						url: '=/v2/accounts/{{$parameter.accountId}}/reopen',
-					},
-				},
 			},
 			{
 				name: 'Update',
 				value: 'update',
 				action: 'Update an account',
 				description: 'Update an account by ID',
-				routing: {
-					request: {
-						method: 'PUT',
-						url: '=/v2/accounts/{{$parameter.accountId}}',
-					},
-				},
 			},
 		],
 		default: 'getAll',
@@ -130,12 +88,6 @@ export const accountFields: INodeProperties[] = [
 			},
 		},
 		description: 'The name of the account',
-		routing: {
-			send: {
-				type: 'body',
-				property: 'account.name',
-			},
-		},
 	},
 	{
 		displayName: 'Off Budget',
@@ -149,12 +101,6 @@ export const accountFields: INodeProperties[] = [
 			},
 		},
 		description: 'Whether the account is off budget',
-		routing: {
-			send: {
-				type: 'body',
-				property: 'account.offbudget',
-			},
-		},
 	},
 	{
 		displayName: 'Closed',
@@ -168,12 +114,19 @@ export const accountFields: INodeProperties[] = [
 			},
 		},
 		description: 'Whether the account is closed',
-		routing: {
-			send: {
-				type: 'body',
-				property: 'account.closed',
+	},
+	{
+		displayName: 'Account Group ID',
+		name: 'accountGroupId',
+		type: 'string',
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['account'],
+				operation: ['create'],
 			},
 		},
+		description: 'Optional account group to place the account in',
 	},
 	{
 		displayName: 'Initial Balance',
@@ -187,12 +140,6 @@ export const accountFields: INodeProperties[] = [
 			},
 		},
 		description: 'Initial balance in cents (e.g., 5000 = $50.00)',
-		routing: {
-			send: {
-				type: 'body',
-				property: 'initialBalance',
-			},
-		},
 	},
 	// Update fields
 	{
@@ -209,40 +156,32 @@ export const accountFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Name',
-				name: 'name',
+				displayName: 'Account Group ID',
+				name: 'account_group_id',
 				type: 'string',
 				default: '',
-				routing: {
-					send: {
-						type: 'body',
-						property: 'fields.name',
-					},
-				},
-			},
-			{
-				displayName: 'Off Budget',
-				name: 'offbudget',
-				type: 'boolean',
-				default: false,
-				routing: {
-					send: {
-						type: 'body',
-						property: 'fields.offbudget',
-					},
-				},
+				description: 'Account group to move the account into',
 			},
 			{
 				displayName: 'Closed',
 				name: 'closed',
 				type: 'boolean',
 				default: false,
-				routing: {
-					send: {
-						type: 'body',
-						property: 'fields.closed',
-					},
-				},
+				description: 'Whether the account is closed',
+			},
+			{
+				displayName: 'Name',
+				name: 'name',
+				type: 'string',
+				default: '',
+				description: 'New name for the account',
+			},
+			{
+				displayName: 'Off Budget',
+				name: 'offbudget',
+				type: 'boolean',
+				default: false,
+				description: 'Whether the account is off budget',
 			},
 		],
 	},
@@ -258,13 +197,7 @@ export const accountFields: INodeProperties[] = [
 				operation: ['close'],
 			},
 		},
-		description: 'Optional account ID to transfer remaining balance to',
-		routing: {
-			send: {
-				type: 'body',
-				property: 'transferAccountId',
-			},
-		},
+		description: 'Optional account ID to transfer the remaining balance to',
 	},
 	{
 		displayName: 'Transfer Category ID',
@@ -278,12 +211,6 @@ export const accountFields: INodeProperties[] = [
 			},
 		},
 		description: 'Optional category ID for the transfer transaction',
-		routing: {
-			send: {
-				type: 'body',
-				property: 'categoryId',
-			},
-		},
 	},
 	// Get balance fields
 	{
@@ -297,12 +224,7 @@ export const accountFields: INodeProperties[] = [
 				operation: ['getBalance'],
 			},
 		},
-		description: 'Optional date in YYYY-MM-DD format to calculate balance as of that date',
-		routing: {
-			send: {
-				type: 'query',
-				property: 'cutoff',
-			},
-		},
+		description:
+			'Optional date in YYYY-MM-DD format, or a full ISO timestamp, to calculate the balance as of that point',
 	},
 ];

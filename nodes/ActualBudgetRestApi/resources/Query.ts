@@ -17,12 +17,6 @@ export const queryOperations: INodeProperties[] = [
 				value: 'execute',
 				action: 'Execute actual ql query',
 				description: 'Execute an ActualQL query against Actual Budget data',
-				routing: {
-					request: {
-						method: 'POST',
-						url: '/v2/query',
-					},
-				},
 			},
 		],
 		default: 'execute',
@@ -103,7 +97,7 @@ export const queryFields: INodeProperties[] = [
 			},
 		],
 		default: '*',
-		description: 'Fields to select',
+		description: 'Fields to select. Ignored when Calculate is set, which the API cannot combine with a selection.',
 	},
 	{
 		displayName: 'Custom Fields',
@@ -118,7 +112,7 @@ export const queryFields: INodeProperties[] = [
 		},
 		default: '',
 		placeholder: 'ID,amount,date',
-		description: 'Comma-separated list of field names (max 50 fields)',
+		description: 'Comma-separated list of field names',
 	},
 	{
 		displayName: 'Filter (JSON)',
@@ -135,7 +129,7 @@ export const queryFields: INodeProperties[] = [
 		},
 		default: '{}',
 		description:
-			'Filter conditions as JSON object. Example: {"date": {"$gte": "2024-01-01"}}. Max depth: 5 levels.',
+			'One filter object, or an array of up to 50 sibling filters. Example: {"date": {"$gte": "2024-01-01"}}. Nesting via $and/$or is capped at 5 levels.',
 	},
 	{
 		displayName: 'Options',
@@ -151,6 +145,22 @@ export const queryFields: INodeProperties[] = [
 		default: {},
 		options: [
 			{
+				displayName: 'Calculate (JSON)',
+				name: 'calculate',
+				type: 'json',
+				default: '{"$sum":"amount"}',
+				description:
+					'Aggregate expression such as {"$sum":"amount"}. Replaces the field selection and returns a single value.',
+			},
+			{
+				displayName: 'Group By',
+				name: 'groupBy',
+				type: 'string',
+				default: '',
+				placeholder: 'category,account',
+				description: 'Comma-separated list of fields to group by',
+			},
+			{
 				displayName: 'Limit',
 				name: 'limit',
 				type: 'number',
@@ -158,10 +168,47 @@ export const queryFields: INodeProperties[] = [
 				description: 'Max number of results to return',
 				typeOptions: {
 					minValue: 1,
-					maxValue: 10000,
 				},
+			},
+			{
+				displayName: 'Offset',
+				name: 'offset',
+				type: 'number',
+				default: 0,
+				description: 'Rows to skip. The API applies its own maximum as the limit when none is given.',
+				typeOptions: {
+					minValue: 0,
+				},
+			},
+			{
+				displayName: 'Order By (JSON)',
+				name: 'orderBy',
+				type: 'json',
+				default: '[{"date":"desc"}]',
+				description:
+					'JSON array of field names and direction objects, e.g. [{"date":"desc"}]. A single quoted field name such as "date" also works.',
+			},
+			{
+				displayName: 'Splits',
+				name: 'splits',
+				type: 'options',
+				default: 'inline',
+				description: 'How split transactions are returned',
+				options: [
+					{
+						name: 'All',
+						value: 'all',
+					},
+					{
+						name: 'Grouped',
+						value: 'grouped',
+					},
+					{
+						name: 'Inline',
+						value: 'inline',
+					},
+				],
 			},
 		],
 	},
 ];
-
