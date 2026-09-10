@@ -13,52 +13,28 @@ export const categoryGroupOperations: INodeProperties[] = [
 		},
 		options: [
 			{
-				name: 'Get Many',
-				value: 'getAll',
-				action: 'Get many category groups',
-				description: 'Retrieve many category groups',
-				routing: {
-					request: {
-						method: 'GET',
-						url: '/v2/category-groups',
-					},
-				},
-			},
-			{
 				name: 'Create',
 				value: 'create',
 				action: 'Create a category group',
 				description: 'Create a new category group',
-				routing: {
-					request: {
-						method: 'POST',
-						url: '/v2/category-groups',
-					},
-				},
-			},
-			{
-				name: 'Update',
-				value: 'update',
-				action: 'Update a category group',
-				description: 'Update a category group by ID',
-				routing: {
-					request: {
-						method: 'PUT',
-						url: '=/v2/category-groups/{{$parameter.groupId}}',
-					},
-				},
 			},
 			{
 				name: 'Delete',
 				value: 'delete',
 				action: 'Delete a category group',
 				description: 'Delete a category group by ID',
-				routing: {
-					request: {
-						method: 'DELETE',
-						url: '=/v2/category-groups/{{$parameter.groupId}}',
-					},
-				},
+			},
+			{
+				name: 'Get Many',
+				value: 'getAll',
+				action: 'Get many category groups',
+				description: 'Retrieve many category groups',
+			},
+			{
+				name: 'Update',
+				value: 'update',
+				action: 'Update a category group',
+				description: 'Update a category group by ID',
 			},
 		],
 		default: 'getAll',
@@ -66,7 +42,6 @@ export const categoryGroupOperations: INodeProperties[] = [
 ];
 
 export const categoryGroupFields: INodeProperties[] = [
-	// Group ID
 	{
 		displayName: 'Group ID',
 		name: 'groupId',
@@ -79,9 +54,29 @@ export const categoryGroupFields: INodeProperties[] = [
 				operation: ['update', 'delete'],
 			},
 		},
-		description: 'The category group ID',
 	},
-	// Create fields
+	{
+		displayName: 'Filters',
+		name: 'filters',
+		type: 'collection',
+		placeholder: 'Add Filter',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['categoryGroup'],
+				operation: ['getAll'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Hidden',
+				name: 'hidden',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to return hidden category groups instead of visible ones',
+			},
+		],
+	},
 	{
 		displayName: 'Group Name',
 		name: 'groupName',
@@ -95,12 +90,6 @@ export const categoryGroupFields: INodeProperties[] = [
 			},
 		},
 		description: 'The name of the category group',
-		routing: {
-			send: {
-				type: 'body',
-				property: 'group.name',
-			},
-		},
 	},
 	{
 		displayName: 'Is Income',
@@ -113,15 +102,30 @@ export const categoryGroupFields: INodeProperties[] = [
 				operation: ['create'],
 			},
 		},
-		description: 'Whether this is an income group',
-		routing: {
-			send: {
-				type: 'body',
-				property: 'group.is_income',
+		description: 'Whether this group holds income categories',
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['categoryGroup'],
+				operation: ['create'],
 			},
 		},
+		options: [
+			{
+				displayName: 'Hidden',
+				name: 'hidden',
+				type: 'boolean',
+				default: false,
+				description: 'Whether the category group is hidden',
+			},
+		],
 	},
-	// Update fields
 	{
 		displayName: 'Update Fields',
 		name: 'updateFields',
@@ -136,29 +140,39 @@ export const categoryGroupFields: INodeProperties[] = [
 		},
 		options: [
 			{
-				displayName: 'Name',
-				name: 'name',
-				type: 'string',
-				default: '',
-				routing: {
-					send: {
-						type: 'body',
-						property: 'fields.name',
-					},
-				},
+				displayName: 'Hidden',
+				name: 'hidden',
+				type: 'boolean',
+				default: false,
+				description: 'Whether the category group is hidden',
 			},
 			{
 				displayName: 'Is Income',
 				name: 'is_income',
 				type: 'boolean',
 				default: false,
-				routing: {
-					send: {
-						type: 'body',
-						property: 'fields.is_income',
-					},
-				},
+				description: 'Whether this group holds income categories',
+			},
+			{
+				displayName: 'Name',
+				name: 'name',
+				type: 'string',
+				default: '',
+				description: 'New name for the category group',
 			},
 		],
+	},
+	{
+		displayName: 'Transfer Category ID',
+		name: 'transferCategoryId',
+		type: 'string',
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['categoryGroup'],
+				operation: ['delete'],
+			},
+		},
+		description: 'Optional category to move the deleted group’s categories to',
 	},
 ];
