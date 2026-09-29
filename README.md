@@ -300,3 +300,9 @@ that same envelope in the item's JSON instead of stopping the workflow.
 - [Actual Budget REST API OpenAPI documentation](https://github.com/zonemix/actual-budget-rest-api/blob/main/src/docs/openapi.yml)
 - [ActualQL query syntax](https://actualbudget.org/docs/api/actual-ql/)
 - [DEVELOPMENT.md](DEVELOPMENT.md) for the node's architecture and release flow
+
+## License
+
+GPL-3.0-only — see [LICENSE](LICENSE).
+
+Copyright (c) 2026 ZoneMix.

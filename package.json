@@ -2,7 +2,7 @@
   "name": "n8n-nodes-actual-budget-rest-api",
   "version": "1.1.0",
   "description": "n8n community node for the Actual Budget REST API wrapper (accounts, transactions, budgets, categories, payees, rules, schedules, tags, notes)",
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "homepage": "https://github.com/ZoneMix/n8n-nodes-actual-budget-rest-api#readme",
   "keywords": [
     "n8n-community-node-package"
